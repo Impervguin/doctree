@@ -1,0 +1,4 @@
+# environment files
+deployments/*.env
+!deployments/*.example.env
+
