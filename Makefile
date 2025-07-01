@@ -21,3 +21,10 @@ endef
 
 %down:
 	$(DOCKER) compose --env-file $(COMPOSE_ENV) -f $(call compose_file,$@) down
+
+example:
+	python3 ./scripts/exampler.py --dirs ./deployments \
+    --extensions .yaml .env \
+    --suffix .example \
+    --exclude docker-compose \
+    --override
