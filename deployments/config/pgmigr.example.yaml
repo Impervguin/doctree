@@ -1,0 +1,9 @@
+db:
+  database: your_database_name
+  user: example_value
+  password: your_password_here
+  host: example.com
+  port: 8080
+
+migration:
+  migration_dir: example_value

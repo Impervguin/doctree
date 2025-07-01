@@ -8,22 +8,22 @@ define compose_file
 endef
 
 
-.PHONY: up, upd, upda, dev-up, dev-upd, dev-upda
-
 %up:
-	$(DOCKER) compose --env-file $(COMPOSE_ENV) -f $(call compose_file,$@) up -d --build
+	$(DOCKER) compose --env-file $(COMPOSE_ENV) -f $(call compose_file,$@) up -d
 
 %upd:
 	$(DOCKER) compose --env-file $(COMPOSE_ENV) -f $(call compose_file,$@) up -d --build
 
 %upda: 
-	$(DOCKER) compose --env-file $(COMPOSE_ENV) -f $(call compose_file,$@) up -d --build
+	$(DOCKER) compose --env-file $(COMPOSE_ENV) -f $(call compose_file,$@) up --build
 
 %down:
 	$(DOCKER) compose --env-file $(COMPOSE_ENV) -f $(call compose_file,$@) down
 
+.PHONY: example
+
 example:
-	python3 ./scripts/exampler.py --dirs ./deployments \
+	python3 ./scripts/exampler.py --dirs ./deployments ./deployments/config \
     --extensions .yaml .env \
     --suffix .example \
     --exclude docker-compose \
