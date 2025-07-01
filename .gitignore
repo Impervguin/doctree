@@ -2,3 +2,7 @@
 deployments/*.env
 !deployments/*.example.env
 
+# docker config files
+deployments/config/*.yaml
+!deployments/config/*.example.yaml
+
