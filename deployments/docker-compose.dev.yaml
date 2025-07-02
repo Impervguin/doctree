@@ -84,15 +84,14 @@ services:
     build:
       context: ..
       dockerfile: pkg/pgmigrator/Dockerfile
-      args:
-        BUILD_TARGET: migr
+    environment:
+      - GOOSE_MIGRATION_DIR=/migrations
+    env_file:
+      - goose.env
     command:
-      - "migr"
-      - "--config"
-      - "/config/pgmigr.yaml"
+      - "goose"
       - "up"
     volumes:
-      - ../${MIGRATOR_CONFIG_PATH}:/config/pgmigr.yaml
       - ../migrations:/migrations
     depends_on:
       doctree-postgres:

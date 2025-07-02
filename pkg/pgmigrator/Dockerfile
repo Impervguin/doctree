@@ -1,15 +1,6 @@
-FROM golang:1.24-alpine
+FROM alpine:3.22
 LABEL AUTHOR="Impervguin"
 
-ARG BUILD_TARGET
+ADD https://github.com/pressly/goose/releases/download/v3.24.0/goose_linux_x86_64 /bin/goose
+RUN chmod +x /bin/goose
 
-RUN apk add --no-cache make && \
-    mkdir /build
-WORKDIR /build
-
-COPY pkg/pgmigrator/ .
-
-RUN go mod download && \
-    make build BUILD_TARGET=${BUILD_TARGET}
-
-ENV PATH="$PATH:/build"
