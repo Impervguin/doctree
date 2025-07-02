@@ -1,3 +1,6 @@
+-- +goose Up
+-- +goose StatementBegin
+
 CREATE TABLE IF NOT EXISTS nodes (
     id UUID PRIMARY KEY,
     title TEXT NOT NULL,
@@ -85,4 +88,18 @@ CREATE TABLE IF NOT EXISTS documents_files (
     CONSTRAINT updated_at_before CHECK (updated_at <= deleted_at)
 );
 
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+
+DROP TABLE IF EXISTS documents_files;
+DROP TABLE IF EXISTS files;
+DROP TABLE IF EXISTS document_relations;
+DROP TABLE IF EXISTS documents_nodes;
+DROP TABLE IF EXISTS documents;
+DROP TABLE IF EXISTS nodes;
+DROP TYPE IF EXISTS document_relation;
+
+-- +goose StatementEnd
 

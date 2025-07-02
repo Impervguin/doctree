@@ -23,7 +23,7 @@ endef
 .PHONY: example
 
 example:
-	python3 ./scripts/exampler.py --dirs ./deployments ./deployments/config \
+	python3 ./scripts/exampler.py --dirs ./deployments \
     --extensions .yaml .env \
     --suffix .example \
     --exclude docker-compose \
