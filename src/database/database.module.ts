@@ -16,7 +16,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         username: configService.get('DB_USERNAME', 'postgres'),
         password: configService.get('DB_PASSWORD', 'postgres'),
         database: configService.get('DB_NAME', 'nest_app'),
-        entities: [__dirname + '/**/*.entity{.ts}'],
+        entities: [NodeEntity],
         logging: configService.get('DB_LOGGING', true),
         extra: {
             max: configService.get('DB_POOL_MAX', 10),

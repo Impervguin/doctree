@@ -1,4 +1,20 @@
 services:
+  doctree-app:
+    container_name: doctree-app
+    build:
+      context: ..
+      dockerfile: ./src/Dockerfile
+    ports:
+      - 3000:3000
+    env_file:
+      - app.env
+    depends_on:
+      - doctree-postgres
+    networks:
+      - doctree-postgres-net
+    command: >
+        npm run start;
+
   doctree-postgres:
     container_name: doctree-postgres
     hostname: pg

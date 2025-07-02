@@ -6,11 +6,10 @@ export class NodeMapper {
     return {
       id: entity.id,
       title: entity.title,
-      parentId: entity.parent?.id || null,
+      nodeId: entity.nodeId,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
       deletedAt: entity.deletedAt,
-      children: entity.children?.map(child => this.toDomain(child))
     };
   }
 }
