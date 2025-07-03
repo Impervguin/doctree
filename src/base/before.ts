@@ -12,7 +12,7 @@ export function IsBefore(property: string, validationOptions?: ValidationOptions
         validate(value: any, args: ValidationArguments) {
           const [relatedPropertyName] = args.constraints;
           const relatedValue = (args.object as any)[relatedPropertyName];
-          return value instanceof Date && (relatedValue === null || (relatedValue instanceof Date && value < relatedValue)) ;
+          return value instanceof Date && (relatedValue === null || (relatedValue instanceof Date && value <= relatedValue)) ;
         },
         defaultMessage(args: ValidationArguments) {
           return `${args.property} must be before ${args.constraints[0]}`;

@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { NodeRepository } from '../infra/node.repository';
 import { Node } from '../domain/node.model';
-import { NodeMapper } from '../infra/node.mapper';
+import { CreateNodeRequest } from './requests/create.request';
+import { GetAllNodeResponseDto } from './responses/get.response';
 
 @Injectable()
 export class NodeService {
@@ -9,12 +10,12 @@ export class NodeService {
     private readonly nodeRepository: NodeRepository,
   ) {}
 
-  async getAllNodes(): Promise<Node[]> {
+  async getAllNodes(): Promise<GetAllNodeResponseDto> {
     return this.nodeRepository.getAllNodes();
   }
 
-  async createNode(title: string, parentId: string | null): Promise<Node> {
-    const node = new Node(title, parentId);
+  async createNode(createNodeRequest: CreateNodeRequest): Promise<Node> {
+    const node = new Node(createNodeRequest.title, createNodeRequest.parentId);
     await this.nodeRepository.createNode(node);
     return node;
   }

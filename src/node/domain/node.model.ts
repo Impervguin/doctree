@@ -1,11 +1,11 @@
 import { BaseModel } from '../../base/base.model';
 import { IsOptional, IsString, IsUUID } from 'class-validator';
+import { ValidateObject } from '../../utils/validate.throw';
 
 export class Node extends BaseModel {
   @IsString()
   title: string;
 
-  @IsOptional()
   @IsUUID('4')
   parentId: string | null;
 
@@ -27,5 +27,7 @@ export class Node extends BaseModel {
     }
     this.title = title;
     this.parentId = parentId;
+
+    ValidateObject(this);
   }
 }

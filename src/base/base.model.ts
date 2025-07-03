@@ -1,4 +1,4 @@
-import { IsUUID, IsDate, IsOptional } from 'class-validator';
+import { IsUUID, IsDate, IsOptional, validate } from 'class-validator';
 import { IsBefore } from './before';
 import { randomUUID } from 'crypto';
 
@@ -34,8 +34,6 @@ export abstract class BaseModel {
       this.deletedAt = deletedAt;
     }
   }
-
-
 
   isDeleted(): boolean {
     return this.deletedAt !== null;
