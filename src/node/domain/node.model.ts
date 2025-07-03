@@ -7,13 +7,13 @@ export class Node extends BaseModel {
 
   @IsOptional()
   @IsUUID('4')
-  nodeId: string | null;
+  parentId: string | null;
 
-  constructor(title: string, nodeId: string | null);
-  constructor(title: string, nodeId: string | null, id: string, createdAt: Date, updatedAt: Date, deletedAt: Date | null);
+  constructor(title: string, parentId: string | null);
+  constructor(title: string, parentId: string | null, id: string, createdAt: Date, updatedAt: Date, deletedAt: Date | null);
   constructor(
     title: string,
-    nodeId: string | null,
+    parentId: string | null,
     id?: string,
     createdAt?: Date,
     updatedAt?: Date,
@@ -26,6 +26,6 @@ export class Node extends BaseModel {
       super(id!, createdAt!, updatedAt!, deletedAt!);
     }
     this.title = title;
-    this.nodeId = nodeId;
+    this.parentId = parentId;
   }
 }

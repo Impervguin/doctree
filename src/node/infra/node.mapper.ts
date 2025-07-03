@@ -6,7 +6,7 @@ export class NodeMapper {
   static toDomain(entity: NodeEntity): Node {
     return new Node(
       entity.title,
-      entity.nodeId,
+      entity.parentId,
       entity.id,
       entity.createdAt,
       entity.updatedAt,

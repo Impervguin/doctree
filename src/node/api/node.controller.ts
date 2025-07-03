@@ -8,7 +8,6 @@ export class NodeController {
 
   @Get()
   async getAllNodes(): Promise<NodeResponseDto[]> {
-    const nodes = await this.nodeService.getAllNodes();
-    return nodes.map(node => new NodeResponseDto(node));
+    return await this.nodeService.getAllNodes();
   }
 }
