@@ -12,4 +12,10 @@ export class NodeService {
   async getAllNodes(): Promise<Node[]> {
     return this.nodeRepository.getAllNodes();
   }
+
+  async createNode(title: string, parentId: string | null): Promise<Node> {
+    const node = new Node(title, parentId);
+    await this.nodeRepository.createNode(node);
+    return node;
+  }
 }

@@ -17,4 +17,15 @@ export class NodeMapper {
   static toDomainArrayPromise(entities: Promise<NodeEntity[]>): Promise<Node[]> {
     return entities.then(entities => entities.map(NodeMapper.toDomain));
   }
+
+  static toEntity(node: Node): NodeEntity {
+    return {
+      id: node.id,
+      title: node.title,
+      parentId: node.parentId,
+      createdAt: node.createdAt,
+      updatedAt: node.updatedAt,
+      deletedAt: node.deletedAt,
+    }
+  }
 }

@@ -2,20 +2,20 @@
 -- +goose StatementBegin
 
 CREATE TABLE IF NOT EXISTS nodes (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT NOT NULL,
-    node_id UUID,
+    parent_id UUID,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMP,
 
-    CONSTRAINT fk_nodes_node_id FOREIGN KEY (node_id) REFERENCES nodes (id),
+    CONSTRAINT fk_nodes_node_id FOREIGN KEY (parent_id) REFERENCES nodes (id),
     CONSTRAINT created_at_before CHECK (created_at <= updated_at),
     CONSTRAINT updated_at_before CHECK (updated_at <= deleted_at)
 );
 
 CREATE TABLE IF NOT EXISTS documents (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT NOT NULL,
     description TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS document_relations (
 );
 
 CREATE TABLE IF NOT EXISTS files (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT NOT NULL, -- logical name of the file
     description TEXT,
     filename TEXT NOT NULL, -- os name of the file

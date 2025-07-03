@@ -12,4 +12,9 @@ export class NodeRepository {
   async getAllNodes(): Promise<Node[]> {
     return NodeMapper.toDomainArrayPromise(this.dataSource.getRepository(NodeEntity).find());
   }
+
+  async createNode(node: Node): Promise<any> {
+    const entity = NodeMapper.toEntity(node);
+    return this.dataSource.getRepository(NodeEntity).insert(entity);
+  }
 }

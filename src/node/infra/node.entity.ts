@@ -6,6 +6,6 @@ export class NodeEntity extends BaseEntity {
   @Column({ type: 'text' })
   title: string;
 
-  @Column({ name: 'parent_id', nullable: true })
-  parentId: string;
+  @Column({ name: 'parent_id', nullable: true, type: String })
+  parentId: string | null;
 }
