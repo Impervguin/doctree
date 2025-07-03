@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { NodeController } from './api/node.controller';
-import { NodeService } from './app/node.service';
+import { NodeService } from './services/node.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { NodeEntity } from './infra/node.entity';
 import { NodeRepository } from './infra/node.repository';

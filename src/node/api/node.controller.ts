@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body } from '@nestjs/common';
-import { NodeService } from '../app/node.service';
+import { NodeService } from '../services/node.service';
 import { NodeResponseDto } from './responses/node-response.dto';
 import { CreateNodeRequest } from './requests/create.request';
 
