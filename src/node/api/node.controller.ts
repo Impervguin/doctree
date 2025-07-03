@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
-import { NodeService } from '../../utils/services/node/node.service';
-import { NodeResponseDto } from './node-response.dto';
+import { NodeService } from '../app/node.service';
+import { NodeResponseDto } from './responses/node-response.dto';
 
 @Controller('nodes')
 export class NodeController {

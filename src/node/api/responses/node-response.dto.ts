@@ -1,4 +1,4 @@
-import { Node } from '../../domain/node/node.model';
+import { Node } from '../../../node/domain/node.model';
 
 export class NodeResponseDto implements Pick<Node, 'id' | 'title' | 'nodeId' | 'createdAt' | 'updatedAt' | 'deletedAt'> {
   id: string;
