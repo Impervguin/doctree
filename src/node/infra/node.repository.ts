@@ -17,4 +17,8 @@ export class NodeRepository {
     const entity = NodeMapper.toEntity(node);
     return this.dataSource.getRepository(NodeEntity).insert(entity);
   }
+
+  async getNode(nodeId: string): Promise<Node | null> {
+    return this.dataSource.getRepository(NodeEntity).findOneBy({ id: nodeId }).then(entity => entity ? NodeMapper.toDomain(entity) : null);
+  }
 }

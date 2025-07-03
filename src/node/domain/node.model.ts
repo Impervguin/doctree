@@ -6,7 +6,9 @@ export class Node extends BaseModel {
   @IsString()
   title: string;
 
+  @IsOptional()
   @IsUUID('4')
+  // probably custom validator to check if parent exists in repo
   parentId: string | null;
 
   constructor(title: string, parentId: string | null);
