@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UsePipes, ValidationPipe, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, UsePipes, ValidationPipe, Param, Put } from '@nestjs/common';
 import { NodeService } from '../services/node.service';
 import { GetAllNodeResponseDto, GetNodeResponseDto } from '../services/responses/get.response';
 import { CreateNodeRequest } from '../services/requests/create.request';
@@ -23,5 +23,11 @@ export class NodeController {
   @UsePipes(new ValidationPipe())
   async getNode(@Param() req: GetNodeRequest): Promise<GetNodeResponseDto> {
     return await this.nodeService.getNode(req);
+  }
+
+  @Put(':id')
+  @UsePipes(new ValidationPipe())
+  async updateNode(@Param() req: GetNodeRequest, @Body() createNodeRequest: CreateNodeRequest) {
+    await this.nodeService.updateNode(req, createNodeRequest);
   }
 }
