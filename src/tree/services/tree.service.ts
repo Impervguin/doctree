@@ -11,4 +11,8 @@ export class TreeService {
   // async getSubTree(req: GetSubTreeRequest): Promise<Tree> {
     // return this.treeRepository.getTreeAsRoot(req.id);
   // }
+
+  async getAllTrees(): Promise<Tree[]> {
+    return this.treeRepository.getAllTrees();
+  }
 }
