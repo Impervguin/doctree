@@ -17,6 +17,6 @@ export class TreeEntity extends BaseEntity {
 
   @TreeParent()
   @JoinColumn({ name: 'parent_id' })
-  parent: TreeEntity;
+  parent: TreeEntity | null;
 }
 

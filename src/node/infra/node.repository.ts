@@ -13,17 +13,17 @@ export class NodeRepository {
     return NodeMapper.toDomainArrayPromise(this.dataSource.getRepository(NodeEntity).find());
   }
 
-  async createNode(node: Node): Promise<any> {
-    const entity = NodeMapper.toEntity(node);
-    return this.dataSource.getRepository(NodeEntity).insert(entity);
-  }
+  // async createNode(node: Node): Promise<any> {
+  //   const entity = NodeMapper.toEntity(node);
+  //   return this.dataSource.getRepository(NodeEntity).insert(entity);
+  // }
 
   async getNode(nodeId: string): Promise<Node | null> {
     return this.dataSource.getRepository(NodeEntity).findOneBy({ id: nodeId }).then(entity => entity ? NodeMapper.toDomain(entity) : null);
   }
 
-  async updateNode(node: Node): Promise<Node> {
-    const entity = NodeMapper.toEntity(node);
-    return this.dataSource.getRepository(NodeEntity).save(entity).then(entity => NodeMapper.toDomain(entity));
-  }
+  // async updateNode(node: Node): Promise<Node> {
+  //   const entity = NodeMapper.toEntity(node);
+  //   return this.dataSource.getRepository(NodeEntity).save(entity).then(entity => NodeMapper.toDomain(entity));
+  // }
 }

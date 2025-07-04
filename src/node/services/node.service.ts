@@ -1,12 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { NodeRepository } from '../infra/node.repository';
 import { Node } from '../domain/node.model';
-import { CreateNodeRequest } from './requests/create.request';
 import { GetAllNodeResponseDto, GetNodeResponseDto } from './responses/get.response';
 // import { IsUUID } from 'class-validator';
 import { GetNodeRequest } from './requests/get.request';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UpdateNodeRequest } from './requests/update.request';
 
 @Injectable()
 export class NodeService {
@@ -19,11 +17,11 @@ export class NodeService {
     return this.nodeRepository.getAllNodes();
   }
 
-  async createNode(createNodeRequest: CreateNodeRequest): Promise<Node> {
-    const node = new Node(createNodeRequest.title, createNodeRequest.parentId);
-    await this.nodeRepository.createNode(node);
-    return node;
-  }
+  // async createNode(createNodeRequest: CreateNodeRequest): Promise<Node> {
+  //   const node = new Node(createNodeRequest.title, createNodeRequest.parentId);
+  //   await this.nodeRepository.createNode(node);
+  //   return node;
+  // }
 
   async getNode(req: GetNodeRequest): Promise<GetNodeResponseDto> {
     const node = await this.nodeRepository.getNode(req.id);
@@ -33,27 +31,27 @@ export class NodeService {
     return node;
   }
 
-  async updateNode(updateRequest: UpdateNodeRequest): Promise<Node> {
-    const { id, title, parentId } = updateRequest;
+  // async updateNode(updateRequest: UpdateNodeRequest): Promise<Node> {
+  //   const { id, title, parentId } = updateRequest;
 
-    const node = await this.nodeRepository.getNode(id);
-    if (!node) {
-      throw new NodeNotFoundError('Node not found');
-    }
+  //   const node = await this.nodeRepository.getNode(id);
+  //   if (!node) {
+  //     throw new NodeNotFoundError('Node not found');
+  //   }
 
-    if (parentId !== undefined && parentId !== node.parentId) {
-      await this.checkForLoop(id, parentId);
-    }
+  //   if (parentId !== undefined && parentId !== node.parentId) {
+  //     await this.checkForLoop(id, parentId);
+  //   }
 
-    if (title !== undefined) {
-      node.title = title;
-    }
-    if (parentId !== undefined) {
-      node.parentId = parentId;
-    }
+  //   if (title !== undefined) {
+  //     node.title = title;
+  //   }
+  //   if (parentId !== undefined) {
+  //     node.parentId = parentId;
+  //   }
 
-    return this.nodeRepository.updateNode(node);
-  }
+  //   return this.nodeRepository.updateNode(node);
+  // }
 
   private async checkForLoop(nodeId: string, potentialParentId: string): Promise<void> {
     if (nodeId === potentialParentId) {

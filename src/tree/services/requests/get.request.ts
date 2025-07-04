@@ -1,7 +1,7 @@
 import { IsUUID } from 'class-validator';
 
 
-export class GetSubTreeRequest {
+export class GetTreeRequest {
     @IsUUID('4')
     id: string;
 }
