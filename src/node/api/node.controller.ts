@@ -25,9 +25,9 @@ export class NodeController {
     return await this.nodeService.getNode(req);
   }
 
-  @Put(':id')
-  @UsePipes(new ValidationPipe())
-  async updateNode(@Param() req: GetNodeRequest, @Body() createNodeRequest: CreateNodeRequest) {
-    await this.nodeService.updateNode(req, createNodeRequest);
-  }
+  // @Put(':id')
+  // @UsePipes(new ValidationPipe())
+  // async updateNode(@Param() req: GetNodeRequest, @Body() createNodeRequest: CreateNodeRequest) {
+  //   await this.nodeService.updateNode(req, createNodeRequest);
+  // }
 }

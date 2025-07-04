@@ -11,7 +11,7 @@ import { UpdateNodeRequest } from './requests/update.request';
 @Injectable()
 export class NodeService {
   constructor(
-    @InjectRepository(Node)
+    // @InjectRepository(Node)
     private readonly nodeRepository: NodeRepository,
   ) {}
 
