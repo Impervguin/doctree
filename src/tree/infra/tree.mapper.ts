@@ -16,6 +16,6 @@ export class TreeMapper {
             children = tree.children.map(child => TreeMapper.toEntity(child));
         }
 
-        return new TreeEntity(tree.title, tree.id, tree.createdAt, tree.updatedAt, tree.deletedAt, children, tree.parent);
+        return new TreeEntity(tree.title, tree.id, tree.createdAt, tree.updatedAt, tree.deletedAt, children, null);
     }
 }

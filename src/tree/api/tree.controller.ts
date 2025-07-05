@@ -1,7 +1,7 @@
 import { Controller, Get, Param, UsePipes, ValidationPipe, Post, Body, Put, BadRequestException, Delete } from '@nestjs/common';
 import { TreeService } from '../services/tree.service';
 import { GetTreeRequest } from '../services/requests/get.request';
-import { GetAllTreesResponseDto } from '../services/responses/get.response';
+import { GetAllTreesResponseDto, GetRootTreeResponseDto, GetSubTreeResponseDto } from '../services/responses/get.response';
 import { CreateNodeRequest, CreateRootRequest } from '../services/requests/create.request';
 import { UpdateNodeParentRequest } from '../services/requests/update.request';
 import { DeleteNodeRequest, DeleteRootRequest } from '../services/requests/delete.request';
@@ -14,19 +14,19 @@ export class TreeController {
 
   @Get('sub/:id')
   @UsePipes(new ValidationPipe())
-  async getSubTree(@Param() req : GetTreeRequest) {
+  async getSubTree(@Param() req : GetTreeRequest) : Promise<GetSubTreeResponseDto> {
     return await this.treeService.getSubTree(req);
   }
 
   @Get('root/:id')
   @UsePipes(new ValidationPipe())
-  async getRootTree(@Param() req : GetTreeRequest) {
+  async getRootTree(@Param() req : GetTreeRequest) : Promise<GetRootTreeResponseDto> {
     return await this.treeService.getRootTree(req);
   }
 
   @Get()
   async getAllTrees(): Promise<GetAllTreesResponseDto> {
-    return this.treeService.getAllTrees();
+    return await this.treeService.getAllTrees();
   }
 
   @Post('node')

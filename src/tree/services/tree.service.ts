@@ -62,7 +62,8 @@ export class TreeService {
 
   async deleteRoot(req: DeleteRootRequest): Promise<void> {
     await this.treeRepository.getTreeAsRoot(req.id).then(tree => {
-      if (tree.parent !== null) {
+      const isRoot = this.treeRepository.isRootNode(req.id);
+      if (!isRoot) {
         throw new Error('Node is not root');
       }
       this.treeRepository.deleteNodeCascade(req.id);
