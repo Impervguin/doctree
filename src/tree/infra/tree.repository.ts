@@ -41,5 +41,17 @@ export class TreeRepository {
 
         return treeRep.findDescendantsTree(root).then(tree => TreeMapper.toDomain(tree));
     }
+
+    async createNode(title : string, parentId : string | null): Promise<Tree> {
+        let treeRep = this.dataSource.getTreeRepository(TreeEntity);
+        let node = new TreeEntity();
+        node.title = title;
+        if (parentId) {
+            node.parent = await treeRep.findOneBy({ id: parentId });
+        } else {
+            node.parent = null;
+        }
+        return treeRep.save(node).then(node => TreeMapper.toDomain(node));
+    }
 }
 

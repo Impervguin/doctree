@@ -1,7 +1,8 @@
-import { Controller, Get, Param, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Param, UsePipes, ValidationPipe, Post, Body } from '@nestjs/common';
 import { TreeService } from '../services/tree.service';
 import { GetTreeRequest } from '../services/requests/get.request';
 import { GetAllTreesResponseDto } from '../services/responses/get.response';
+import { CreateNodeRequest, CreateRootRequest } from '../services/requests/create.request';
 
 
 @Controller('trees')
@@ -25,4 +26,15 @@ export class TreeController {
     return this.treeService.getAllTrees();
   }
 
+  @Post('node')
+  @UsePipes(new ValidationPipe())
+  async createNode(@Body() req : CreateNodeRequest) {
+    await this.treeService.createNode(req);
+  }
+
+  @Post('root')
+  @UsePipes(new ValidationPipe())
+  async createRoot(@Body() req : CreateRootRequest) {
+    await this.treeService.createRoot(req);
+  }
 }

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { TreeRepository } from '../infra/tree.repository';
 import { Tree } from '../domain/tree.model';
 import { GetTreeRequest } from './requests/get.request';
+import { CreateNodeRequest, CreateRootRequest } from './requests/create.request';
 
 
 @Injectable()
@@ -18,5 +19,13 @@ export class TreeService {
 
   async getAllTrees(): Promise<Tree[]> {
     return this.treeRepository.getAllTrees();
+  }
+
+  async createNode(req: CreateNodeRequest): Promise<Tree> {
+    return this.treeRepository.createNode(req.title, req.parentId);
+  }
+
+  async createRoot(req: CreateRootRequest): Promise<Tree> {
+    return this.treeRepository.createNode(req.title, null);
   }
 }
