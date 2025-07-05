@@ -5,6 +5,7 @@ import { GetTreeRequest } from './requests/get.request';
 import { CreateNodeRequest, CreateRootRequest } from './requests/create.request';
 import { UpdateNodeParentRequest } from './requests/update.request';
 import { TreeHasCycleError } from '../domain/tree.model';
+import { DeleteNodeRequest, DeleteRootRequest } from './requests/delete.request';
 
 
 @Injectable()
@@ -24,11 +25,13 @@ export class TreeService {
   }
 
   async createNode(req: CreateNodeRequest): Promise<Tree> {
-    return this.treeRepository.createNode(req.title, req.parentId);
+    let node = new Tree(req.title);
+    return this.treeRepository.createNode(node, req.parentId);
   }
 
   async createRoot(req: CreateRootRequest): Promise<Tree> {
-    return this.treeRepository.createNode(req.title, null);
+    let node = new Tree(req.title);
+    return this.treeRepository.createNode(node, null);
   }
 
   async updateNode(req: UpdateNodeParentRequest): Promise<void> {
@@ -39,9 +42,30 @@ export class TreeService {
         throw new TreeHasCycleError();
       }
 
-      return this.treeRepository.getTreeAsRoot(req.parentId).then(parent => tree.parent = parent);
+      return this.treeRepository.getTreeAsRoot(req.parentId).then(parent => {
+        parent.addChild(tree);
+        return parent;
+      });
     })
-
   }
 
+  async deleteNode(req: DeleteNodeRequest): Promise<void> {
+    await this.treeRepository.updateNodeAsPart(req.id, tree => {
+      if (tree.id === req.id) {
+        throw new Error('Node is Root');
+      }
+      tree.deleteChild(req.id);
+      return Promise.resolve(tree);
+    });
+    await this.treeRepository.deleteNode(req.id);
+  }
+
+  async deleteRoot(req: DeleteRootRequest): Promise<void> {
+    await this.treeRepository.getTreeAsRoot(req.id).then(tree => {
+      if (tree.parent !== null) {
+        throw new Error('Node is not root');
+      }
+      this.treeRepository.deleteNodeCascade(req.id);
+    });
+  }
 }

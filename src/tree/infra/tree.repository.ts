@@ -16,11 +16,18 @@ export class TreeRepository {
         let treeRep = this.dataSource.getTreeRepository(TreeEntity);
         let node = await treeRep.findOneBy({ id: id });
         if (!node) {
-            throw new NodeNotFoundError('Node not found');
+            throw new Error('Node not found');
         }
-        return treeRep.findDescendantsTree(node).then(tree => TreeMapper.toDomain(tree));
+        let ancCount = await treeRep.countAncestors(node)
+        return treeRep.findDescendantsTree(node).then(tree => {
+            let treeDomain = TreeMapper.toDomain(tree);
+            if (ancCount === 1) { // self reference
+                treeDomain.parent = null;
+            }
+            return treeDomain;
+        });
     }
-
+ 
     async getTreeAsPart(id: string): Promise<Tree> {
         let rep = this.dataSource.getRepository(TreeEntity)
 
@@ -42,25 +49,56 @@ export class TreeRepository {
         return treeRep.findDescendantsTree(root).then(tree => TreeMapper.toDomain(tree));
     }
 
-    async createNode(title : string, parentId : string | null): Promise<Tree> {
+    async createNode(node: Tree, parentId : string | null): Promise<Tree> {
         let treeRep = this.dataSource.getTreeRepository(TreeEntity);
-        let node = new TreeEntity();
-        node.title = title;
-        if (parentId) {
-            node.parent = await treeRep.findOneBy({ id: parentId });
+        let treeEntity = TreeMapper.toEntity(node);
+        if (parentId !== null) {
+            treeEntity.parent = await treeRep.findOneBy({ id: parentId });
         } else {
-            node.parent = null;
+            treeEntity.parent = null;
         }
-        return treeRep.save(node).then(node => TreeMapper.toDomain(node));
+        return treeRep.save(treeEntity).then(node => TreeMapper.toDomain(node));
     }
 
     async updateNodeAsRoot(id: string, updatefn: (tree: Tree) => Promise<Tree>): Promise<Tree> {
         let tree = await this.getTreeAsRoot(id);
-        updatefn(tree);
+        return this.updateTree(tree, updatefn);
+    }
 
+    async updateNodeAsPart(id: string, updatefn: (tree: Tree) => Promise<Tree>): Promise<Tree> {
+        let tree = await this.getTreeAsPart(id);
+        return this.updateTree(tree, updatefn);
+    }
+
+    async updateTree(tree: Tree, updatefn: (tree: Tree) => Promise<Tree>): Promise<Tree> {
+        tree = await updatefn(tree);
         let treeRep = this.dataSource.getTreeRepository(TreeEntity);
-        treeRep.save(tree);
+
+        let treeEntity = TreeMapper.toEntity(tree);
+
+        let treeArr: TreeEntity[] = [];
+
+        treeEntity.forEach(child => {
+            treeArr.push(child);
+        });
+
+        treeRep.save(treeArr);
         return tree;
+    }
+
+    async deleteNodeCascade (id: string): Promise<void> {
+        let rep = this.dataSource.getRepository(TreeEntity);
+        await rep.createQueryBuilder().softDelete()
+            .where('id = :id', { id: id })
+            .orWhere('id IN (SELECT descendant_id FROM node_closure WHERE ancestor_id = :id)', { id: id })
+            .execute();
+    }
+
+    async deleteNode(id: string): Promise<void> {
+        let rep = this.dataSource.getRepository(TreeEntity);
+        await rep.createQueryBuilder().softDelete()
+            .where('id = :id', { id: id })
+            .execute();
     }
 }
 

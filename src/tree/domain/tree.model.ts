@@ -79,13 +79,57 @@ export class Tree extends BaseModel {
     return hasCycleUtil(this);
   }
 
-  deleteChild(childId: string): void {
+  deleteSubTree(childId: string): void {
     if (this.children !== undefined) {
-      this.children = this.children.filter(child => child.id !== childId);
-      this.children.forEach(child => child.deleteChild(childId));
+      let child = this.children.find(child => child.id === childId);
+      if (child) {
+        let reqDelete = child => {
+          child.markDeleted();
+          child.parent = null;
+          this.children = this.children!.filter(c => c.id !== child.id);
+          
+          if (child.children !== undefined) {
+            child.children.forEach(reqDelete);
+          }
+        };
+        reqDelete(child);
+      } else {
+        this.children.forEach(child => child.deleteSubTree(childId));
+      } 
     } else {
       throw new TreeChildrenUndefinedError();
     }
+  }
+
+  deleteChild(childId: string): Tree | null {
+    if (this.children !== undefined) {
+      let child = this.children.find(child => child.id === childId);
+      if (child) {
+        if (child.children === undefined) {
+          throw new TreeChildrenUndefinedError();
+        }
+
+        for (const c of child.children) {
+          this.children.push(c);
+          c.parent = this;
+        }
+
+        // soft delete
+        child.markDeleted();
+        child.children = [];
+        child.parent = null;
+        this.children = this.children.filter(c => c.id !== childId);
+        
+        return child;
+      } else {
+        for (const c of this.children) {
+          return c.deleteChild(childId);
+        }
+      }
+    } else {
+      throw new TreeChildrenUndefinedError();
+    }
+    return null;
   }
 
   addChild(child: Tree): void {
@@ -108,15 +152,30 @@ export class Tree extends BaseModel {
     }
     if (this.children !== undefined) {
       for (const child of this.children) {
-        let result = child.find(criteria);
-        if (result) {
-          return result;
+        if (!child.isDeleted()) {
+          let result = child.find(criteria);
+          if (result) {
+            return result;
+          }
         }
       }
     } else {
       throw new TreeChildrenUndefinedError();
     }
     return null;
+  }
+
+  forEach(fn: (child: Tree) => void): void {
+    fn(this);
+    if (this.children !== undefined) {
+      if (!this.isDeleted()) {
+        for (const child of this.children) {
+          child.forEach(fn);
+        }
+      }
+    } else {
+      throw new TreeChildrenUndefinedError();
+    }
   }
 }
 

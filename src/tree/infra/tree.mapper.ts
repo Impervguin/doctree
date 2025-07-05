@@ -9,4 +9,13 @@ export class TreeMapper {
         }   
         return new Tree(treeEntity.title, treeEntity.id, treeEntity.createdAt, treeEntity.updatedAt, treeEntity.deletedAt, children);
     }
+
+    static toEntity(tree: Tree): TreeEntity {
+        let children: TreeEntity[] = [];
+        if (tree.children) {
+            children = tree.children.map(child => TreeMapper.toEntity(child));
+        }
+
+        return new TreeEntity(tree.title, tree.id, tree.createdAt, tree.updatedAt, tree.deletedAt, children, tree.parent);
+    }
 }
