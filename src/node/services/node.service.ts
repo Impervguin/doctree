@@ -4,6 +4,7 @@ import { Node } from '../domain/node.model';
 import { GetAllNodeResponseDto, GetNodeResponseDto } from './responses/get.response';
 // import { IsUUID } from 'class-validator';
 import { GetNodeRequest } from './requests/get.request';
+import { UpdateNodeTitleRequest } from './requests/update.request';
 import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
@@ -29,6 +30,10 @@ export class NodeService {
       throw new NodeNotFoundError('Node not found');
     }
     return node;
+  }
+
+  async updateNodeTitle(req: UpdateNodeTitleRequest): Promise<void> {
+    await this.nodeRepository.updateNodeTitle(req.id, req.title);
   }
 
   // async updateNode(updateRequest: UpdateNodeRequest): Promise<Node> {

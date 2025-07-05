@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, UsePipes, ValidationPipe, Param, Put } fro
 import { NodeService } from '../services/node.service';
 import { GetAllNodeResponseDto, GetNodeResponseDto } from '../services/responses/get.response';
 import { GetNodeRequest } from '../services/requests/get.request';
+import { UpdateNodeTitleRequest } from '../services/requests/update.request';
 
 @Controller('nodes')
 export class NodeController {
@@ -12,21 +13,17 @@ export class NodeController {
     return await this.nodeService.getAllNodes();
   }
 
-  // @Post()
-  // @UsePipes(new ValidationPipe())
-  // async createNode(@Body() createNodeRequest: CreateNodeRequest) {
-  //   await this.nodeService.createNode(createNodeRequest);
-  // }
-
   @Get(':id')
   @UsePipes(new ValidationPipe())
   async getNode(@Param() req: GetNodeRequest): Promise<GetNodeResponseDto> {
     return await this.nodeService.getNode(req);
   }
 
-  // @Put(':id')
-  // @UsePipes(new ValidationPipe())
-  // async updateNode(@Param() req: GetNodeRequest, @Body() createNodeRequest: CreateNodeRequest) {
-  //   await this.nodeService.updateNode(req, createNodeRequest);
-  // }
+  @Put('title')
+  @UsePipes(new ValidationPipe())
+  async updateNodeTitle(@Body() req: UpdateNodeTitleRequest) : Promise<void> {
+    await this.nodeService.updateNodeTitle(req);
+  }
+
+
 }
