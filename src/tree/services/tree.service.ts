@@ -3,6 +3,8 @@ import { TreeRepository } from '../infra/tree.repository';
 import { Tree } from '../domain/tree.model';
 import { GetTreeRequest } from './requests/get.request';
 import { CreateNodeRequest, CreateRootRequest } from './requests/create.request';
+import { UpdateNodeParentRequest } from './requests/update.request';
+import { TreeHasCycleError } from '../domain/tree.model';
 
 
 @Injectable()
@@ -28,4 +30,18 @@ export class TreeService {
   async createRoot(req: CreateRootRequest): Promise<Tree> {
     return this.treeRepository.createNode(req.title, null);
   }
+
+  async updateNode(req: UpdateNodeParentRequest): Promise<void> {
+    await this.treeRepository.updateNodeAsRoot(req.id, tree => {
+      // Need to check for no cycle after changing parent
+      // Cycle in tree may appear, if we set node's parent to itself or one of its children
+      if (tree.find(child => child.id === req.parentId)) {
+        throw new TreeHasCycleError();
+      }
+
+      return this.treeRepository.getTreeAsRoot(req.parentId).then(parent => tree.parent = parent);
+    })
+
+  }
+
 }

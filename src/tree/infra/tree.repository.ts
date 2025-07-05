@@ -53,5 +53,14 @@ export class TreeRepository {
         }
         return treeRep.save(node).then(node => TreeMapper.toDomain(node));
     }
+
+    async updateNodeAsRoot(id: string, updatefn: (tree: Tree) => Promise<Tree>): Promise<Tree> {
+        let tree = await this.getTreeAsRoot(id);
+        updatefn(tree);
+
+        let treeRep = this.dataSource.getTreeRepository(TreeEntity);
+        treeRep.save(tree);
+        return tree;
+    }
 }
 

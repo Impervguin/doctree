@@ -24,6 +24,4 @@ export class NodeController {
   async updateNodeTitle(@Body() req: UpdateNodeTitleRequest) : Promise<void> {
     await this.nodeService.updateNodeTitle(req);
   }
-
-
 }

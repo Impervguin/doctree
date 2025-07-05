@@ -12,6 +12,10 @@ export class Tree extends BaseModel {
   @Type(() => Tree)
   children?: Tree[];
 
+  @IsOptional()
+  @Type(() => Tree)
+  parent?: Tree | null;
+
   constructor(title: string);
   constructor(
     title: string,
@@ -73,5 +77,63 @@ export class Tree extends BaseModel {
     };
     
     return hasCycleUtil(this);
+  }
+
+  deleteChild(childId: string): void {
+    if (this.children !== undefined) {
+      this.children = this.children.filter(child => child.id !== childId);
+      this.children.forEach(child => child.deleteChild(childId));
+    } else {
+      throw new TreeChildrenUndefinedError();
+    }
+  }
+
+  addChild(child: Tree): void {
+    if (this.children !== undefined) {
+      this.children.push(child);
+      if (this.hasCycle()) {
+        this.children = this.children.filter(child => child.id !== child.id);
+        throw new Error('Cycle detected');
+      }
+      child.parent = this;
+    } else {
+      throw new TreeChildrenUndefinedError();
+    }
+  }
+
+  // Finds subtree with given criteria (maybe root of it's children)
+  find(criteria: (child: Tree) => boolean): Tree | null {
+    if (criteria(this)) {
+      return this;
+    }
+    if (this.children !== undefined) {
+      for (const child of this.children) {
+        let result = child.find(criteria);
+        if (result) {
+          return result;
+        }
+      }
+    } else {
+      throw new TreeChildrenUndefinedError();
+    }
+    return null;
+  }
+}
+
+export class TreeChildrenUndefinedError extends Error {
+  constructor() {
+    super('Children undefined');
+  }
+}
+
+export class TreeHasCycleError extends Error {
+  constructor() {
+    super('Cycle detected');
+  }
+}
+
+export class TreeParentUndefinedError extends Error {
+  constructor() {
+    super('Parent undefined');
   }
 }
