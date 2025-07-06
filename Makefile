@@ -1,3 +1,6 @@
+include .env
+export $(shell sed 's/=.*//' .env)
+
 DOCKER:=docker
 COMPOSE_DEV:=deployments/docker-compose.dev.yaml
 COMPOSE_PROD:=deployments/docker-compose.yaml
@@ -7,6 +10,8 @@ define compose_file
 	$(if $(findstring dev-,$(1)),$(COMPOSE_DEV),$(COMPOSE_PROD))
 endef
 
+start:
+	npm run start
 
 %up:
 	$(DOCKER) compose --env-file $(COMPOSE_ENV) -f $(call compose_file,$@) up -d
