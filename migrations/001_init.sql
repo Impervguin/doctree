@@ -10,8 +10,7 @@ CREATE TABLE IF NOT EXISTS nodes (
     deleted_at TIMESTAMP,
 
     CONSTRAINT fk_nodes_node_id FOREIGN KEY (parent_id) REFERENCES nodes (id),
-    CONSTRAINT created_at_before CHECK (created_at <= updated_at),
-    CONSTRAINT updated_at_before CHECK (updated_at <= deleted_at)
+    CONSTRAINT created_at_before CHECK (created_at <= updated_at)
 );
 
 CREATE TABLE IF NOT EXISTS documents (
@@ -22,8 +21,7 @@ CREATE TABLE IF NOT EXISTS documents (
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMP,
 
-    CONSTRAINT created_at_before CHECK (created_at <= updated_at),
-    CONSTRAINT updated_at_before CHECK (updated_at <= deleted_at)
+    CONSTRAINT created_at_before CHECK (created_at <= updated_at)
 );
 
 CREATE TABLE IF NOT EXISTS documents_nodes (
@@ -36,8 +34,7 @@ CREATE TABLE IF NOT EXISTS documents_nodes (
     PRIMARY KEY (document_id, node_id),
     CONSTRAINT fk_documents_nodes_document_id FOREIGN KEY (document_id) REFERENCES documents (id),
     CONSTRAINT fk_documents_nodes_node_id FOREIGN KEY (node_id) REFERENCES nodes (id),
-    CONSTRAINT created_at_before CHECK (created_at <= updated_at),
-    CONSTRAINT updated_at_before CHECK (updated_at <= deleted_at)
+    CONSTRAINT created_at_before CHECK (created_at <= updated_at)
 );
 
 CREATE TYPE document_relation AS ENUM (
@@ -56,7 +53,6 @@ CREATE TABLE IF NOT EXISTS document_relations (
     CONSTRAINT fk_document_relations_document_id0 FOREIGN KEY (document_id0) REFERENCES documents (id),
     CONSTRAINT fk_document_relations_document_id1 FOREIGN KEY (document_id1) REFERENCES documents (id),
     CONSTRAINT created_at_before CHECK (created_at <= updated_at),
-    CONSTRAINT updated_at_before CHECK (updated_at <= deleted_at),
     CONSTRAINT no_selfreference CHECK (document_id0 <> document_id1)
 );
 
@@ -70,8 +66,7 @@ CREATE TABLE IF NOT EXISTS files (
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMP,
 
-    CONSTRAINT created_at_before CHECK (created_at <= updated_at),
-    CONSTRAINT updated_at_before CHECK (updated_at <= deleted_at)
+    CONSTRAINT created_at_before CHECK (created_at <= updated_at)
 );
 
 CREATE TABLE IF NOT EXISTS documents_files (
@@ -84,8 +79,7 @@ CREATE TABLE IF NOT EXISTS documents_files (
     PRIMARY KEY (document_id, file_id),
     CONSTRAINT fk_documents_files_document_id FOREIGN KEY (document_id) REFERENCES documents (id),
     CONSTRAINT fk_documents_files_file_id FOREIGN KEY (file_id) REFERENCES files (id),
-    CONSTRAINT created_at_before CHECK (created_at <= updated_at),
-    CONSTRAINT updated_at_before CHECK (updated_at <= deleted_at)
+    CONSTRAINT created_at_before CHECK (created_at <= updated_at)
 );
 
 -- +goose StatementEnd
