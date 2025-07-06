@@ -10,12 +10,13 @@ export class TreeMapper {
         return new Tree(treeEntity.title, treeEntity.id, treeEntity.createdAt, treeEntity.updatedAt, treeEntity.deletedAt, children);
     }
 
-    static toEntity(tree: Tree): TreeEntity {
+    static toEntity(tree: Tree, parent: TreeEntity | undefined = undefined): TreeEntity {
         let children: TreeEntity[] = [];
+        let current: TreeEntity = new TreeEntity(tree.title, tree.id, tree.createdAt, tree.updatedAt, tree.deletedAt, children, parent);
         if (tree.children) {
-            children = tree.children.map(child => TreeMapper.toEntity(child));
+            children.push(...tree.children.map(child => TreeMapper.toEntity(child, current)));
         }
-
-        return new TreeEntity(tree.title, tree.id, tree.createdAt, tree.updatedAt, tree.deletedAt, children, null);
+        
+        return current;
     }
 }
