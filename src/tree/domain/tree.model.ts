@@ -115,15 +115,18 @@ export class Tree extends BaseModel {
         }
 
         // soft delete
-        child.markDeleted();
         child.children = [];
+        child.markDeleted();
         // child.parent = null;
         this.children = this.children.filter(c => c.id !== childId);
         
         return child;
       } else {
         for (const c of this.children) {
-          return c.deleteChild(childId);
+          let deleted = c.deleteChild(childId);
+          if (deleted) {
+            return deleted;
+          }
         }
       }
     } else {

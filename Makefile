@@ -14,6 +14,9 @@ endef
 start:
 	npm run start
 
+dev-start:
+	npm run start:dev
+
 %up:
 	$(DOCKER) compose --env-file $(COMPOSE_ENV) -f $(call compose_file,$@) up -d $(CONTAINERS)
 

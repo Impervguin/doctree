@@ -18,14 +18,9 @@ export class TreeRepository {
         if (!node) {
             throw new Error('Node not found');
         }
-        // let ancCount = await treeRep.countAncestors(node)
-        return treeRep.findDescendantsTree(node).then(tree => {
-            let treeDomain = TreeMapper.toDomain(tree);
-            // if (ancCount === 1) { // self reference
-            //     treeDomain.parent = null;
-            // }
-            return treeDomain;
-        });
+        return treeRep.findDescendantsTree(node).then(tree => 
+            TreeMapper.toDomain(tree)
+        );
     }
  
     async getTreeAsPart(id: string): Promise<Tree> {
@@ -88,21 +83,25 @@ export class TreeRepository {
         });
 
         treeRep.save(treeArr);
+
         return tree;
     }
 
     async isRootNode(id: string): Promise<boolean> {
-        const treeRep = this.dataSource.getTreeRepository(TreeEntity);
-        const node = await treeRep.findOne({
-            where: { id },
+        let treeRep = this.dataSource.getTreeRepository(TreeEntity);
+        return treeRep.findOne({
+            where: {
+                id: id
+            },
             relations: ['parent']
-        });
-        
-        if (!node) {
-            throw new Error('Node not found');
-        }
-        
-        return node.parent === null;
+        }). then(
+            node => {
+                if (node === null) {
+                    throw new Error('Node not found');
+                }
+                return node.parent === null;
+            },
+        );
     }
 
     async deleteNodeCascade (id: string): Promise<void> {
