@@ -8,8 +8,7 @@ CREATE TABLE IF NOT EXISTS node_closure (
 
     PRIMARY KEY (descendant_id, ancestor_id),
     CONSTRAINT fk_ancestor_node_id FOREIGN KEY (ancestor_id) REFERENCES nodes (id),
-    CONSTRAINT fk_descendant_node_id FOREIGN KEY (descendant_id) REFERENCES nodes (id),
-    CONSTRAINT no_selfparent CHECK (ancestor_id <> descendant_id)
+    CONSTRAINT fk_descendant_node_id FOREIGN KEY (descendant_id) REFERENCES nodes (id)
 )
 
 
