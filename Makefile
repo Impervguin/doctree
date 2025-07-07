@@ -1,6 +1,3 @@
-include .env
-export $(shell sed 's/=.*//' .env)
-
 DOCKER:=docker
 COMPOSE_DEV:=deployments/docker-compose.dev.yaml
 COMPOSE_PROD:=deployments/docker-compose.yaml
