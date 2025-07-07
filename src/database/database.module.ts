@@ -20,7 +20,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
             min: configService.get('DB_POOL_MIN', 2),
             connectionTimeoutMillis: configService.get('DB_CONN_TIMEOUT', 5000),
             idleTimeoutMillis: configService.get('DB_IDLE_TIMEOUT', 10000),
-            }
+            },
       }),
       inject: [ConfigService],
     }),

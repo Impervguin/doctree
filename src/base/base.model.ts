@@ -9,7 +9,6 @@ export abstract class BaseModel {
   @IsBefore('updatedAt')
   createdAt: Date;
 
-  @IsBefore('deletedAt')
   updatedAt: Date;
 
   @IsOptional()
@@ -37,6 +36,10 @@ export abstract class BaseModel {
 
   isDeleted(): boolean {
     return this.deletedAt !== null;
+  }
+
+  markDeleted(): void {
+    this.deletedAt = new Date();
   }
 }
 
