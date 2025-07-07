@@ -18,12 +18,12 @@ export class TreeRepository {
         if (!node) {
             throw new Error('Node not found');
         }
-        let ancCount = await treeRep.countAncestors(node)
+        // let ancCount = await treeRep.countAncestors(node)
         return treeRep.findDescendantsTree(node).then(tree => {
             let treeDomain = TreeMapper.toDomain(tree);
-            if (ancCount === 1) { // self reference
-                treeDomain.parent = null;
-            }
+            // if (ancCount === 1) { // self reference
+            //     treeDomain.parent = null;
+            // }
             return treeDomain;
         });
     }
@@ -31,13 +31,18 @@ export class TreeRepository {
     async getTreeAsPart(id: string): Promise<Tree> {
         let rep = this.dataSource.getRepository(TreeEntity)
 
-        let root = await rep.createQueryBuilder()
-            .where('parent_id is NULL')
-            .andWhere(`id IN (
-                SELECT DISTINCT ancestor_id
-                FROM node_closure
-                WHERE descendant_id = :id
-            )`, { id: id })
+        const root = await rep.createQueryBuilder('node')
+            .where('(node.parent_id IS NULL AND node.id = :id)', { id })
+            .orWhere(qb => {
+                const subQuery = qb.subQuery()
+                .select('DISTINCT nc.ancestor_id')
+                .from('node_closure', 'nc')
+                .where('nc.descendant_id = :id')
+                .andWhere('nc.ancestor_id != nc.descendant_id')
+                .getQuery();
+                return 'node.id IN ' + subQuery;
+            })
+            .setParameter('id', id)
             .getOne();
 
         if (root == null) {
@@ -84,6 +89,20 @@ export class TreeRepository {
 
         treeRep.save(treeArr);
         return tree;
+    }
+
+    async isRootNode(id: string): Promise<boolean> {
+        const treeRep = this.dataSource.getTreeRepository(TreeEntity);
+        const node = await treeRep.findOne({
+            where: { id },
+            relations: ['parent']
+        });
+        
+        if (!node) {
+            throw new Error('Node not found');
+        }
+        
+        return node.parent === null;
     }
 
     async deleteNodeCascade (id: string): Promise<void> {

@@ -12,9 +12,9 @@ export class Tree extends BaseModel {
   @Type(() => Tree)
   children?: Tree[];
 
-  @IsOptional()
-  @Type(() => Tree)
-  parent?: Tree | null;
+  // @IsOptional()
+  // @Type(() => Tree)
+  // parent?: Tree | null;
 
   constructor(title: string);
   constructor(
@@ -85,7 +85,7 @@ export class Tree extends BaseModel {
       if (child) {
         let reqDelete = child => {
           child.markDeleted();
-          child.parent = null;
+          // child.parent = null;
           this.children = this.children!.filter(c => c.id !== child.id);
           
           if (child.children !== undefined) {
@@ -111,13 +111,13 @@ export class Tree extends BaseModel {
 
         for (const c of child.children) {
           this.children.push(c);
-          c.parent = this;
+          // c.parent = this;
         }
 
         // soft delete
         child.markDeleted();
         child.children = [];
-        child.parent = null;
+        // child.parent = null;
         this.children = this.children.filter(c => c.id !== childId);
         
         return child;
@@ -139,7 +139,7 @@ export class Tree extends BaseModel {
         this.children = this.children.filter(child => child.id !== child.id);
         throw new Error('Cycle detected');
       }
-      child.parent = this;
+      // child.parent = this;
     } else {
       throw new TreeChildrenUndefinedError();
     }
