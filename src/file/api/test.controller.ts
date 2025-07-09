@@ -18,7 +18,11 @@ export class TestController {
     @Post()
     @UseInterceptors(FileInterceptor('file'))
     async uploadFile(@UploadedFile(FileValidationPipe) file: Express.Multer.File) {
-        const objectName = await this.uploadService.uploadFile(file);
+        const objectName = await this.uploadService.uploadFile({
+            filename: file.originalname,
+            buffer: file.buffer,
+            size: file.size,
+        });
         const url = await this.uploadService.getFileUrl(objectName);
         return {
         objectName,

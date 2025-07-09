@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { MetaInfoRepository } from "../infra/meta.repository";
 import { FileRepository } from "../infra/file.repository";
 import { ConfigService } from '@nestjs/config';
+import { BufferedFile } from "../domain/bufferedfile.domain";
 
 
 @Injectable()
@@ -11,12 +12,13 @@ export class UploadFileService {
 				private readonly configService: ConfigService
 	) {}
 
-	async uploadFile(file: Express.Multer.File): Promise<string> {
+	async uploadFile(file : BufferedFile): Promise<string> {
 		const bucketName = this.configService.getOrThrow('MINIO_BUCKET_NAME');
 
 		await this.fileRep.putObject(bucketName, file);
 
-		return file.originalname;
+		// здесь потом идшник
+		return file.filename;
 	}
 
 	async getFileUrl(objectName: string): Promise<string> {

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { MinioClient } from 'src/minio/client/client';
+import { BufferedFile } from '../domain/bufferedfile.domain';
 
 @Injectable()
 export class FileRepository {
@@ -9,10 +10,10 @@ export class FileRepository {
         return this.minioClient.listBuckets().then(buckets => buckets.map(bucket => bucket.name));
     }
 
-    async putObject(bucketName: string, file: Express.Multer.File): Promise<void> {
+    async putObject(bucketName: string, file: BufferedFile): Promise<void> {
         await this.minioClient.putObject(
             bucketName,
-            file.originalname,
+            file.filename,
             file.buffer,
             file.size,
         );
