@@ -1,4 +1,4 @@
-import { BaseModel } from '../domain/base.model';
+import { BaseModel } from '../../base/base.model';
 import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
@@ -6,7 +6,7 @@ import {
   DeleteDateColumn,
 } from 'typeorm';
 
-export abstract class BaseEntity implements BaseModel {
+export abstract class BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
