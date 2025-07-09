@@ -29,7 +29,7 @@ dev-start:
 .PHONY: example
 
 example:
-	python3 ./scripts/exampler.py --dirs ./deployments \
+	python3 ./scripts/exampler.py --dirs ./deployments . \
     --extensions .yaml .env \
     --suffix .example \
     --exclude docker-compose \
