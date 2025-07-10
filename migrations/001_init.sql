@@ -60,7 +60,8 @@ CREATE TABLE IF NOT EXISTS files (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT NOT NULL, -- logical name of the file
     description TEXT,
-    filesrc TEXT NOT NULL, -- file source
+    filebucket TEXT NOT NULL, -- bucket name
+    filekey TEXT NOT NULL, -- key of the file
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ,

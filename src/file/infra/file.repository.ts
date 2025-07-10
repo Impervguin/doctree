@@ -10,13 +10,24 @@ export class FileRepository {
         return this.minioClient.listBuckets().then(buckets => buckets.map(bucket => bucket.name));
     }
 
-    async putObject(bucketName: string, file: BufferedFile): Promise<void> {
-        await this.minioClient.putObject(
-            bucketName,
-            file.filename,
-            file.buffer,
-            file.size,
-        );
+    async putObject(bucketName: string, key: string, file: BufferedFile): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.minioClient.putObject(
+                bucketName,
+                key,
+                file.buffer,
+                file.size,
+            ).then(obj => resolve()).catch(reject);
+        });
+    }
+
+    async deleteObject(bucketName: string, objectName: string): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.minioClient.removeObject(
+                bucketName,
+                objectName,
+            ).then(obj => resolve()).catch(reject);
+        });
     }
 
     async getUrl(bucketName: string, objectName: string): Promise<string> {

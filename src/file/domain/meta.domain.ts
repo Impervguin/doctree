@@ -1,23 +1,32 @@
 import { BaseModel } from "src/base/base.model";
 
-export class StoredFileMetaInfo extends BaseModel {
+export class StoredFileInfo extends BaseModel {
     title: string;
-    description: string;
+    description: string | null;
 
-    filesrc?: string;
+    filebucket: string;
+    filekey: string;
 
-    constructor(title: string, description: string);
-    constructor(title: string, description: string, filesrc: string);
-    constructor(title: string, description: string, filesrc: string, id: string, createdAt: Date, updatedAt: Date, deletedAt: Date | null);
-    constructor(title: string, description: string, filesrc?: string, id?: string, createdAt?: Date, updatedAt?: Date, deletedAt?: Date | null) {
-        if (arguments.length <= 2) {
+    constructor(title: string, description: string | null, filebucket: string, filename: string);
+    constructor(title: string, description: string | null, filebucket: string, filename: string, id: string, createdAt: Date, updatedAt: Date, deletedAt: Date);
+    constructor(title: string, description: string | null, filebucket: string, filename: string, id?: string, createdAt?: Date, updatedAt?: Date, deletedAt?: Date) {
+        if (arguments.length <= 4) {
             super();
         } else {
             super(id!, createdAt!, updatedAt!, deletedAt!);
         }
         this.title = title;
         this.description = description;
-        this.filesrc = filesrc;
+        this.filebucket = filebucket;
+        this.filekey = filename;
+    }
+
+    addDir(dir: string): void {
+        this.filekey = dir + '/' + this.filekey;
+    }
+
+    getFileName(): string {
+        return this.filekey.split('/')[-1];
     }
 }
 
