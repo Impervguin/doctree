@@ -5,6 +5,8 @@ import { ConfigService } from '@nestjs/config';
 import { StoredFileInfo } from "../domain/meta.domain";
 import { Logger } from '@nestjs/common';
 import { UploadRequest } from "./requests/upload.request";
+import { GetFileResponse } from "./responses/get.file";
+import { GetFileResponseFromDomain } from "./responses/get.file";
 
 @Injectable()
 export class UploadFileService {
@@ -35,6 +37,10 @@ export class UploadFileService {
 
 	async getFileInfo(fileId: string): Promise<StoredFileInfo | null> {
 		return this.info.get(fileId);
+	}
+
+	async getFile(fileId: string): Promise<GetFileResponse | null> {
+		return this.info.get(fileId).then(fileInfo => fileInfo !== null ? GetFileResponseFromDomain(fileInfo) : null);
 	}
 }
 
