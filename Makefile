@@ -1,6 +1,3 @@
-include .env
-export $(shell sed 's/=.*//' .env)
-
 DOCKER:=docker
 COMPOSE_DEV:=deployments/docker-compose.dev.yaml
 COMPOSE_PROD:=deployments/docker-compose.yaml
@@ -32,7 +29,7 @@ dev-start:
 .PHONY: example
 
 example:
-	python3 ./scripts/exampler.py --dirs ./deployments \
+	python3 ./scripts/exampler.py --dirs ./deployments . \
     --extensions .yaml .env \
     --suffix .example \
     --exclude docker-compose \

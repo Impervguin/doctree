@@ -1,6 +1,6 @@
 # environment files
-deployments/*.env
-!deployments/*.example.env
+*.env
+!*.example.env
 
 # docker config files
 deployments/config/*.yaml
