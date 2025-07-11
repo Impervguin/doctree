@@ -3,16 +3,15 @@ import { DocumentController } from './api/doc.controller';
 import { DocumentRepository } from './infra/doc.repository';
 import { DocumentService } from './services/doc.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DocumentEntity, DocumentFileEntity, DocumentTagEntity } from './infra/doc.entity';
+import { DocumentEntity, DocumentFileEntity, DocumentTagEntity, DocumentNodeEntity, NodeEntity } from './infra/doc.entity';
 import { FileModule } from 'src/file/file.module';
 import { UploadFileService } from 'src/file/services/upload.service';
 import { ConfigModule } from '@nestjs/config';
-import { NodeEntity } from 'src/node/infra/node.entity';
 
 
 @Module({
     controllers: [DocumentController],
     providers: [DocumentRepository, DocumentService],
-    imports: [TypeOrmModule.forFeature([DocumentEntity, DocumentTagEntity, DocumentFileEntity, NodeEntity]), FileModule, ConfigModule],
+    imports: [TypeOrmModule.forFeature([DocumentEntity, DocumentTagEntity, DocumentFileEntity, DocumentNodeEntity, NodeEntity]), FileModule, ConfigModule],
 })
 export class DocumentModule {}

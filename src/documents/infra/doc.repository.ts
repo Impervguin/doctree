@@ -1,9 +1,9 @@
-import { DataSource } from "typeorm";
+import { DataSource, IsNull } from "typeorm";
 import { Document } from "../domain/doc.model";
 import { DocumentEntity } from "./doc.entity";
 import { DocumentMapper } from "./doc.mapper";
 import { Injectable } from "@nestjs/common";
-import { NodeEntity } from "src/node/infra/node.entity";
+import { NodeEntity } from "./doc.entity";
 
 
 @Injectable()
@@ -35,19 +35,22 @@ export class DocumentRepository {
         }).then(entity => entity ? entity.title : null);
     }
 
-    // temp - WIP
     async getDocumentsByNodeId(nodeId: string): Promise<Document[]> {
         const repo = this.dataSource.getRepository(DocumentEntity);
-        
-        const documentEntities = await repo
-            .createQueryBuilder('document')
-            .innerJoin('documents_nodes', 'dn', 'dn.document_id = document.id')
-            .leftJoinAndSelect('document.tags', 'tags')
-            .leftJoinAndSelect('document.documentFiles', 'documentFiles')
-            .where('dn.node_id = :nodeId', { nodeId })
-            .andWhere('document.deleted_at IS NULL')
-            .andWhere('dn.deleted_at IS NULL')
-            .getMany();
+    
+        const documentEntities = await repo.find({
+            where: {
+                documentNodes: {
+                    nodeId: nodeId,
+                    deletedAt: IsNull()
+                },
+                deletedAt: IsNull()
+            },
+            relations: [
+                'tags',
+                'documentFiles'
+            ]
+        });
 
         return documentEntities.map(entity => DocumentMapper.toDomain(entity));
     }
