@@ -9,7 +9,7 @@ define compose_file
 endef
 
 start:
-	npm run start
+	npm run start 
 
 dev-start:
 	npm run start:dev

@@ -19,6 +19,11 @@ export class DocumentController {
         return this.documentService.getDocument(docId);
     }
 
+    @Get('node/:id')
+    async getNodeWithDocuments(@Param('id') nodeId: string) {
+        return this.documentService.getNodeWithDocuments(nodeId);
+    }
+
     @Post(':id/link')
     @UseInterceptors(FileInterceptor('file'))
     async linkFile(@Param('id') docId: string, @UploadedFile(FileValidationPipe) file: Express.Multer.File) {

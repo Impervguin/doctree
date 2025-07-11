@@ -8,6 +8,7 @@ import { UploadFileService } from "src/file/services/upload.service";
 import { GetFileResponseFromDomain } from "src/file/services/responses/get.file";
 import { DocumentFileLinkRequest } from "./requests/doc.link";
 import { ConfigService } from '@nestjs/config';
+import { GetNodeWithDocumentsResponse } from "./responses/node.doc.get";
 
 @Injectable()
 export class DocumentService {
@@ -43,6 +44,38 @@ export class DocumentService {
 
             );
         });
+    }
+
+    async getNodeWithDocuments(nodeId: string): Promise<GetNodeWithDocumentsResponse | null> {
+        const nodeTitle = await this.documentRepository.getNodeTitle(nodeId);
+        if (!nodeTitle) {
+            return null;
+        }
+
+        const documents = await this.documentRepository.getDocumentsByNodeId(nodeId);
+
+        const documentResponses = await Promise.all(
+            documents.map(async doc => {
+                if (doc.fillFiles) {
+                    await doc.fillFiles(fileId => this.fileService.getFileInfo(fileId));
+                }
+
+                return {
+                    id: doc.id,
+                    title: doc.title,
+                    description: doc.description,
+                    tags: doc.tags,
+                    createdAt: doc.createdAt,
+                    updatedAt: doc.updatedAt,
+                    files: doc.files?.map(fileInfo => GetFileResponseFromDomain(fileInfo)) || []
+                };
+            })
+        );
+
+        return {
+            nodeTitle: nodeTitle,
+            documents: documentResponses
+        };
     }
 
     async linkFile(req: DocumentFileLinkRequest): Promise<void> {
