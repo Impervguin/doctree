@@ -19,14 +19,14 @@ export class DocumentEntity extends BaseEntity {
 
 @Entity('documents_tags')
 export class DocumentTagEntity {
-    @PrimaryGeneratedColumn()
-    id?: string
-
     @ManyToOne(() => DocumentEntity, document => document.tags)
     @JoinColumn({ name: 'document_id' })
     document: DocumentEntity;
 
-    @Column({ name: 'tag' })
+    @PrimaryColumn({ name: 'document_id' })
+    documentId: string;
+
+    @PrimaryColumn({ name: 'tag' })
     tag: string;
 
     @CreateDateColumn({ name: 'created_at' })
@@ -41,14 +41,14 @@ export class DocumentTagEntity {
 
 @Entity('documents_files')
 export class DocumentFileEntity {
-    @PrimaryGeneratedColumn()
-    id?: string
-
     @ManyToOne(() => DocumentEntity, document => document.documentFiles)
     @JoinColumn({ name: 'document_id' })
     document: DocumentEntity;
 
-    @Column({ name: 'file_id' })
+    @PrimaryColumn({ name: 'document_id' })
+    documentId: string;
+
+    @PrimaryColumn({ name: 'file_id' })
     fileId: string;
 
     @CreateDateColumn({name: 'created_at'})

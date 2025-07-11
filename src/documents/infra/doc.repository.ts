@@ -26,4 +26,11 @@ export class DocumentRepository {
         }).then(entity => entity ? DocumentMapper.toDomain(entity) : null);
     }
 
+    async updateDocument(doc: Document): Promise<void> {
+        let repo = this.dataSource.getRepository(DocumentEntity);
+
+        return new Promise((resolve, reject) => {
+            repo.save(DocumentMapper.toEntity(doc)).then(_ => resolve()).catch(reject);
+        });
+    }
 }

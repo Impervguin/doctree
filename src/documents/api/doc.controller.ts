@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, Query, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete, Query, UseGuards, UsePipes, ValidationPipe, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { DocumentService } from '../services/doc.service';
 import { DocumentCreateRequest } from '../services/requests/doc.create';
-
+import { FileInterceptor } from '@nestjs/platform-express';
+import { FileValidationPipe } from '../../file/pipes/validate.pipe';
 
 @Controller('docs')
 export class DocumentController {
@@ -17,5 +18,19 @@ export class DocumentController {
     async getDocument(@Param('id') docId: string) {
         return this.documentService.getDocument(docId);
     }
+
+    @Post(':id/link')
+    @UseInterceptors(FileInterceptor('file'))
+    async linkFile(@Param('id') docId: string, @UploadedFile(FileValidationPipe) file: Express.Multer.File) {
+        await this.documentService.linkFile({
+            documentId: docId,
+            file: {
+                filename: file.originalname,
+                buffer: file.buffer,
+                size: file.size
+            }
+        });
+    }
+
 
 }

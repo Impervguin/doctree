@@ -3,12 +3,15 @@ import { DocumentEntity, DocumentTagEntity, DocumentFileEntity } from "./doc.ent
 
 export class DocumentMapper {
     static toDomain(entity: DocumentEntity): Document {
-        console.log(entity);
         return new Document(
             entity.title,
             entity.description,
             entity.tags.map(tag => tag.tag),
-            entity.documentFiles !== undefined ? entity.documentFiles.map(file => file.fileId) : []
+            entity.documentFiles !== undefined ? entity.documentFiles.map(file => file.fileId) : [],
+            entity.id,
+            entity.createdAt,
+            entity.updatedAt,
+            entity.deletedAt
         );
     }
     static toEntity(document: Document): DocumentEntity {
@@ -22,19 +25,17 @@ export class DocumentMapper {
         entity.tags = document.tags.map(tag => {
             return {
                 tag: tag,
-                document: entity
+                document: entity,
+                documentId: document.id
             }
         });
-        if (document.files) {
-            entity.documentFiles = document.files.map(file => {
-                return {
-                    fileId: file.id,
-                    document: entity,
-                }
-            });
-        } else {
-            entity.documentFiles = undefined;
-        }
+        entity.documentFiles = document.fileIds.map(fileId => {
+            return {
+                fileId: fileId,
+                document: entity,
+                documentId: document.id
+            }
+        });
         return entity;
 
     }

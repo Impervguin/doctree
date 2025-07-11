@@ -51,4 +51,11 @@ export class Document extends BaseModel {
             this.files!.push(fileInfo);
         }))).then(_ => undefined);
     }
+
+    addFileId(fileId: string): void {
+        if (this.files !== undefined) {
+            throw new Error("Files already filled, can't add just file id");
+        }
+        this.fileIds.push(fileId);
+    }
 }
