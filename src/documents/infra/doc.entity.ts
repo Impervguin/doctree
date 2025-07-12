@@ -16,7 +16,7 @@ export class DocumentEntity extends BaseEntity {
     @OneToMany(() => DocumentFileEntity, documentFile => documentFile.document, { cascade: true })
     documentFiles?: DocumentFileEntity[];
 
-    @OneToMany(() => DocumentNodeEntity, dn => dn.document)
+    @OneToMany(() => DocumentNodeEntity, dn => dn.document, { cascade: true })
     documentNodes?: DocumentNodeEntity[];
 }
 
@@ -24,9 +24,6 @@ export class DocumentEntity extends BaseEntity {
 export class NodeEntity extends BaseEntity {
     @Column({ type: 'text' })
     title: string;
-
-    @OneToMany(() => DocumentNodeEntity, dn => dn.node)
-    documentNodes: DocumentNodeEntity[];
 }
 
 @Entity('documents_tags')
@@ -75,13 +72,13 @@ export class DocumentFileEntity {
 
 @Entity('documents_nodes')
 export class DocumentNodeEntity {
-    @ManyToOne(() => DocumentEntity, document => document.documentNodes)
+    @ManyToOne(
+        () => DocumentEntity,
+        document => document.documentNodes,
+        { orphanedRowAction: 'soft-delete' }
+    )
     @JoinColumn({ name: 'document_id' })
     document: DocumentEntity;
-
-    @ManyToOne(() => NodeEntity, node => node.documentNodes)
-    @JoinColumn({ name: 'node_id' })
-    node: NodeEntity;
 
     @PrimaryColumn({ name: 'document_id' })
     documentId: string;

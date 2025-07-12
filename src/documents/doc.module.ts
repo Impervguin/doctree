@@ -7,11 +7,12 @@ import { DocumentEntity, DocumentFileEntity, DocumentTagEntity, DocumentNodeEnti
 import { FileModule } from 'src/file/file.module';
 import { UploadFileService } from 'src/file/services/upload.service';
 import { ConfigModule } from '@nestjs/config';
+import { TreeModule } from 'src/tree/tree.module';
 
 
 @Module({
     controllers: [DocumentController],
     providers: [DocumentRepository, DocumentService],
-    imports: [TypeOrmModule.forFeature([DocumentEntity, DocumentTagEntity, DocumentFileEntity, DocumentNodeEntity, NodeEntity]), FileModule, ConfigModule],
+    imports: [TypeOrmModule.forFeature([DocumentEntity, DocumentTagEntity, DocumentFileEntity, DocumentNodeEntity, NodeEntity]), FileModule, ConfigModule, TreeModule],
 })
 export class DocumentModule {}

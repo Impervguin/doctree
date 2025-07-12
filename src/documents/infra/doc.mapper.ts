@@ -8,6 +8,7 @@ export class DocumentMapper {
             entity.description,
             entity.tags.map(tag => tag.tag),
             entity.documentFiles !== undefined ? entity.documentFiles.map(file => file.fileId) : [],
+            entity.documentNodes !== undefined ? entity.documentNodes.map(node => node.nodeId) : [],
             entity.id,
             entity.createdAt,
             entity.updatedAt,
@@ -34,6 +35,14 @@ export class DocumentMapper {
                 fileId: fileId,
                 document: entity,
                 documentId: document.id
+            }
+        });
+
+        entity.documentNodes = document.nodeIds.map(nodeId => {
+            return {
+                nodeId: nodeId,
+                document: entity,
+                documentId: document.id,
             }
         });
         return entity;

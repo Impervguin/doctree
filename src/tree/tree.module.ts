@@ -13,7 +13,8 @@ import { Module } from "@nestjs/common";
         providers: [TreeService, TreeRepository],
         imports: [
             TypeOrmModule.forFeature([TreeEntity])
-        ]
+        ],
+        exports: [TreeService]
     }
 )
 export class TreeModule {}

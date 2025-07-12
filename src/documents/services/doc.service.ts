@@ -5,10 +5,13 @@ import { Document } from "../domain/doc.model";
 import { GetFileResponse } from "src/file/services/responses/get.file";
 import { GetDocumentResponse } from "./responses/doc.get";
 import { UploadFileService } from "src/file/services/upload.service";
+import { TreeService } from "src/tree/services/tree.service";
+import { Tree } from "src/tree/domain/tree.model";
 import { GetFileResponseFromDomain } from "src/file/services/responses/get.file";
 import { DocumentFileLinkRequest } from "./requests/doc.link";
 import { ConfigService } from '@nestjs/config';
 import { GetNodeWithDocumentsResponse } from "./responses/node.doc.get";
+import { AttachDocumentToNodeRequest } from "./requests/doc.link";
 
 @Injectable()
 export class DocumentService {
@@ -16,13 +19,14 @@ export class DocumentService {
     constructor(
         private documentRepository: DocumentRepository, 
         private fileService: UploadFileService,
-        private configService: ConfigService
+        private configService: ConfigService,
+        private treeService: TreeService
     ) {
         this.bucketName = this.configService.getOrThrow('MINIO_BUCKET_NAME');
     }
 
     async createDocument(req : DocumentCreateRequest): Promise<void> {
-        let doc = new Document(req.title, req.description !== undefined ? req.description : null, req.tags, []);
+        let doc = new Document(req.title, req.description !== undefined ? req.description : null, req.tags, [], []);
         return this.documentRepository.createDocument(doc);
     }
 
@@ -95,6 +99,35 @@ export class DocumentService {
                     }).catch(reject);
                 }
             )
+        });
+    }
+
+    async attachDocumentToNode(req: AttachDocumentToNodeRequest): Promise<void> {
+        return new Promise<void>( (resolve, reject) => {
+            this.documentRepository.getDocument(req.documentId).then(
+                doc => {
+                    if (doc === null) {
+                        reject(new Error("Document not found"));
+                    }
+                    // get the tree to which the document will be attached
+                    this.treeService.getRootTree({id: req.nodeId}).then(rootTree => {
+                        // check if the document is already attached to the node
+                        let node: Tree | null = rootTree.find(node => doc!.nodeIds.includes(node.id));
+                        // if the document is already attached to the node, and we don't want to move it, reject
+                        if (node !== null && !req.move) {
+                            reject(new Error("Document already attached to node"));
+                        }
+                        // both attached and not attached, it we want to move it, we need to detach it from the old nodes
+                        // for now it must be only attached to one node, but still we do cycle check, just in case
+                        while (node !== null) {
+                            doc?.detachFromNode(node.id);
+                            node = rootTree.find(node => doc!.nodeIds.includes(node.id));
+                        }
+                        // attach the document to the node
+                        doc?.attachToNode(req.nodeId);
+                        this.documentRepository.updateDocument(doc!).then(resolve).catch(reject);
+                    }).catch(reject);
+                }).catch(reject);
         });
     }
 }

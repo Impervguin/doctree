@@ -3,6 +3,7 @@ import { DocumentService } from '../services/doc.service';
 import { DocumentCreateRequest } from '../services/requests/doc.create';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileValidationPipe } from '../../file/pipes/validate.pipe';
+import { AttachDocumentToNodeRequest } from '../services/requests/doc.link';
 
 @Controller('docs')
 export class DocumentController {
@@ -35,5 +36,11 @@ export class DocumentController {
                 size: file.size
             }
         });
+    }
+
+    @Post('attach')
+    @UsePipes(new ValidationPipe())
+    async attachDocumentToNode(@Body() req: AttachDocumentToNodeRequest) {
+        await this.documentService.attachDocumentToNode(req);
     }
 }

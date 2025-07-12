@@ -23,9 +23,12 @@ export class Document extends BaseModel {
     @IsArray()
     files?: StoredFileInfo[];
 
-    constructor(title: string, description: string | null, tags: string[], fileIds: string[]);
-    constructor(title: string, description: string | null, tags: string[], fileIds: string[], id: string, createdAt: Date, updatedAt: Date, deletedAt: Date | null);
-    constructor(title: string, description: string  | null, tags: string[], fileIds: string[], id?: string, createdAt?: Date, updatedAt?: Date, deletedAt?: Date | null) {
+    @IsArray()
+    nodeIds: string[];
+
+    constructor(title: string, description: string | null, tags: string[], fileIds: string[], nodeIds: string[]);
+    constructor(title: string, description: string | null, tags: string[], fileIds: string[], nodeIds: string[], id: string, createdAt: Date, updatedAt: Date, deletedAt: Date | null);
+    constructor(title: string, description: string  | null, tags: string[], fileIds: string[], nodeIds: string[], id?: string, createdAt?: Date, updatedAt?: Date, deletedAt?: Date | null) {
         if (arguments.length <= 4) {
             super();
         } else {
@@ -35,6 +38,7 @@ export class Document extends BaseModel {
         this.description = description;
         this.tags = tags;
         this.fileIds = fileIds;
+        this.nodeIds = nodeIds;
 
         ValidateObject(this);
     }
@@ -57,5 +61,16 @@ export class Document extends BaseModel {
             throw new Error("Files already filled, can't add just file id");
         }
         this.fileIds.push(fileId);
+    }
+
+    attachToNode(nodeId: string): void {
+        if (this.nodeIds.includes(nodeId)) {
+            throw new Error("Node already attached");
+        }
+        this.nodeIds.push(nodeId);
+    }
+
+    detachFromNode(nodeId: string): void {
+        this.nodeIds = this.nodeIds.filter(id => id !== nodeId);
     }
 }
