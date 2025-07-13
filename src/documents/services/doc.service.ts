@@ -12,10 +12,12 @@ import { DocumentFileLinkRequest } from "./requests/doc.link";
 import { ConfigService } from '@nestjs/config';
 import { GetNodeWithDocumentsResponse } from "./responses/node.doc.get";
 import { AttachDocumentToNodeRequest } from "./requests/doc.link";
+import { formatDate } from "src/utils/date";
 
 @Injectable()
 export class DocumentService {
     private readonly bucketName;
+    private static readonly dateFormat = "dd-MM-yyyyTHH:mm:ss";
     constructor(
         private documentRepository: DocumentRepository, 
         private fileService: UploadFileService,
@@ -89,9 +91,14 @@ export class DocumentService {
                     if (doc === null) {
                         reject(new Error("Document not found"));
                     }
+                    const fileNameWithTimestamp = req.file.filename.replace(/(\.[^.]*)$/, `_${formatDate(DocumentService.dateFormat, new Date())}$1`);
                     const fileInfo = this.fileService.uploadFile({
                         filebucket: this.bucketName,
-                        file: req.file,
+                        file: {
+                            filename: fileNameWithTimestamp,
+                            buffer: req.file.buffer,
+                            size: req.file.size
+                        },
                         filedir: doc!.id
                     }).then(fileInfo => {
                         doc!.addFileId(fileInfo.id);
