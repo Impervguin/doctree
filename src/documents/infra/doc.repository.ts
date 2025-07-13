@@ -1,6 +1,6 @@
 import { DataSource, IsNull } from "typeorm";
 import { Document } from "../domain/doc.model";
-import { DocumentEntity } from "./doc.entity";
+import { DocumentEntity, DocumentTagEntity } from "./doc.entity";
 import { DocumentMapper } from "./doc.mapper";
 import { Injectable } from "@nestjs/common";
 import { NodeEntity } from "./doc.entity";
@@ -57,11 +57,21 @@ export class DocumentRepository {
     }
 
     async updateDocument(doc: Document): Promise<void> {
-        let repo = this.dataSource.getRepository(DocumentEntity);
+        const repo = this.dataSource.getRepository(DocumentEntity);
+        const tagRepo = this.dataSource.getRepository(DocumentTagEntity);
 
-        return new Promise((resolve, reject) => {
-            repo.save(DocumentMapper.toEntity(doc)).then(_ => resolve()).catch(reject);
-        });
+        try {
+            await tagRepo.delete({ documentId: doc.id });
+            const entity = DocumentMapper.toEntity(doc);
+            entity.tags?.forEach(tag => {
+                tag.documentId = doc.id;
+                tag.document = entity;
+            });
+
+            await repo.save(entity);
+        } catch (err) {
+            throw err;
+        }
     }
 
     async softDeleteDocument(docId: string): Promise<void> {
