@@ -63,6 +63,10 @@ export class Document extends BaseModel {
         this.fileIds.push(fileId);
     }
 
+    removeFileId(fileId: string): void {
+        this.fileIds = this.fileIds.filter(id => id !== fileId);
+    }
+
     attachToNode(nodeId: string): void {
         if (this.nodeIds.includes(nodeId)) {
             throw new Error("Node already attached");
