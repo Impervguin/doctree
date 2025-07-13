@@ -4,6 +4,7 @@ import { DocumentCreateRequest } from '../services/requests/doc.create';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileValidationPipe } from '../../file/pipes/validate.pipe';
 import { AttachDocumentToNodeRequest } from '../services/requests/doc.link';
+import { DocumentUpdateRequest } from '../services/requests/doc.update';
 
 @Controller('docs')
 export class DocumentController {
@@ -42,5 +43,16 @@ export class DocumentController {
     @UsePipes(new ValidationPipe())
     async attachDocumentToNode(@Body() req: AttachDocumentToNodeRequest) {
         await this.documentService.attachDocumentToNode(req);
+    }
+
+    @Put(':id')
+    @UsePipes(new ValidationPipe())
+    async updateDocument(@Param('id') docId: string, @Body() req: DocumentUpdateRequest) {
+        await this.documentService.updateDocument(docId, req);
+    }
+
+    @Delete(':id')
+    async deleteDocument(@Param('id') docId: string) {
+        await this.documentService.deleteDocument(docId);
     }
 }

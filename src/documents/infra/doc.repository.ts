@@ -63,4 +63,14 @@ export class DocumentRepository {
             repo.save(DocumentMapper.toEntity(doc)).then(_ => resolve()).catch(reject);
         });
     }
+
+    async softDeleteDocument(docId: string): Promise<void> {
+        let repo = this.dataSource.getRepository(DocumentEntity);
+
+        return new Promise((resolve, reject) => {
+            repo.createQueryBuilder().softDelete()
+                .where('id = :id', { id: docId })
+                .execute().then(_ => resolve()).catch(reject);
+        });
+    }
 }
