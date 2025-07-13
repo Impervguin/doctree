@@ -50,7 +50,11 @@ export class DocumentTagEntity {
 
 @Entity('documents_files')
 export class DocumentFileEntity {
-    @ManyToOne(() => DocumentEntity, document => document.documentFiles)
+    @ManyToOne(
+        () => DocumentEntity,
+        document => document.documentFiles,
+        { orphanedRowAction: 'soft-delete' }
+    )
     @JoinColumn({ name: 'document_id' })
     document: DocumentEntity;
 

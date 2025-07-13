@@ -11,6 +11,14 @@ export class DocumentFileLinkRequest {
     file: BufferedFile;
 }
 
+export class DocumentUnlinkFileRequest {
+    @IsUUID('4')
+    documentId: string;
+
+    @IsUUID('4')
+    fileId: string;
+}
+
 
 export class AttachDocumentToNodeRequest {
     @IsUUID('4')
@@ -21,4 +29,12 @@ export class AttachDocumentToNodeRequest {
 
     @IsBoolean()
     move: boolean;
+}
+
+export class DetachDocumentFromNodeRequest {
+    @IsUUID('4')
+    documentId: string;
+
+    @IsUUID('4')
+    nodeId: string;
 }

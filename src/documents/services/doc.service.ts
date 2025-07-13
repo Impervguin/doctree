@@ -11,11 +11,13 @@ import { GetFileResponseFromDomain } from "src/file/services/responses/get.file"
 import { DocumentFileLinkRequest } from "./requests/doc.link";
 import { ConfigService } from '@nestjs/config';
 import { GetNodeWithDocumentsResponse } from "./responses/node.doc.get";
-import { AttachDocumentToNodeRequest } from "./requests/doc.link";
+import { AttachDocumentToNodeRequest, DetachDocumentFromNodeRequest, DocumentUnlinkFileRequest } from "./requests/doc.link";
+import { formatDate } from "src/utils/date";
 
 @Injectable()
 export class DocumentService {
     private readonly bucketName;
+    private static readonly dateFormat = "dd-MM-yyyyTHH:mm:ss";
     constructor(
         private documentRepository: DocumentRepository, 
         private fileService: UploadFileService,
@@ -89,9 +91,14 @@ export class DocumentService {
                     if (doc === null) {
                         reject(new Error("Document not found"));
                     }
+                    const fileNameWithTimestamp = req.file.filename.replace(/(\.[^.]*)$/, `_${formatDate(DocumentService.dateFormat, new Date())}$1`);
                     const fileInfo = this.fileService.uploadFile({
                         filebucket: this.bucketName,
-                        file: req.file,
+                        file: {
+                            filename: fileNameWithTimestamp,
+                            buffer: req.file.buffer,
+                            size: req.file.size
+                        },
                         filedir: doc!.id
                     }).then(fileInfo => {
                         doc!.addFileId(fileInfo.id);
@@ -130,4 +137,42 @@ export class DocumentService {
                 }).catch(reject);
         });
     }
+
+    async detachDocumentFromNode(req: DetachDocumentFromNodeRequest): Promise<void> {
+        return new Promise<void>( (resolve, reject) => {
+            this.documentRepository.getDocument(req.documentId).then(
+                doc => {
+                    if (doc === null) {
+                        reject(new Error("Document not found"));
+                    }
+                    if (!doc!.nodeIds.includes(req.nodeId)) {
+                        reject(new Error("Document not attached to node"));
+                    }
+                    doc!.detachFromNode(req.nodeId);
+                    this.documentRepository.updateDocument(doc!).then(resolve).catch(reject);
+                }).catch(reject);
+        });
+    }
+
+    async unlinkFile(req: DocumentUnlinkFileRequest): Promise<void> {
+        return new Promise<void>( (resolve, reject) => {
+            this.documentRepository.getDocument(req.documentId).then(
+                doc => {
+                    if (doc === null) {
+                        reject(new Error("Document not found"));
+                    }
+                    if (!doc!.fileIds.includes(req.fileId)) {
+                        reject(new Error("File not attached to document"));
+                    }
+                    doc!.removeFileId(req.fileId);
+                    this.documentRepository.updateDocument(doc!).then(
+                        _ => {
+                            this.fileService.deleteFile(req.fileId).then(resolve).catch(reject);
+                        }
+                    ).catch(reject);
+                }).catch(reject);
+        });
+    }
+
+
 }
