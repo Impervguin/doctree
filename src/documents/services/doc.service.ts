@@ -13,6 +13,7 @@ import { ConfigService } from '@nestjs/config';
 import { GetNodeWithDocumentsResponse } from "./responses/node.doc.get";
 import { AttachDocumentToNodeRequest, DetachDocumentFromNodeRequest, DocumentUnlinkFileRequest } from "./requests/doc.link";
 import { formatDate } from "src/utils/date";
+import { DocumentUpdateRequest } from "./requests/doc.update";
 
 @Injectable()
 export class DocumentService {
@@ -175,4 +176,28 @@ export class DocumentService {
     }
 
 
+
+    async updateDocument(docId: string, req: DocumentUpdateRequest): Promise<void> {
+        return this.documentRepository.getDocument(docId).then(doc => {
+            if (doc === null) {
+                throw new Error("Document not found");
+            }
+            
+            if (req.title !== undefined) {
+                doc.title = req.title;
+            }
+            if (req.description !== undefined) {
+                doc.description = req.description;
+            }
+            if (req.tags !== undefined) {
+                doc.tags = req.tags;
+            }
+
+            this.documentRepository.updateDocument(doc).then();
+        });
+    }
+
+    async deleteDocument(docId: string): Promise<void> {
+        return this.documentRepository.softDeleteDocument(docId);
+    }
 }
