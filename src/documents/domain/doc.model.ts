@@ -1,7 +1,12 @@
-import { IsArray, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsDate, IsEnum, IsInstance, IsOptional, IsString, IsUUID, ValidateNested } from 'class-validator';
 import { BaseModel } from '../../base/base.model';
 import { ValidateObject } from 'src/utils/validate.throw';
 import { StoredFileInfo } from 'src/file/domain/meta.domain';
+import { IsBefore } from 'src/base/before';
+
+export enum DocumentRelationType {
+    UsedBy = 'used_by'
+}
 
 export class Document extends BaseModel {
 
@@ -26,9 +31,14 @@ export class Document extends BaseModel {
     @IsArray()
     nodeIds: string[];
 
-    constructor(title: string, description: string | null, tags: string[], fileIds: string[], nodeIds: string[]);
-    constructor(title: string, description: string | null, tags: string[], fileIds: string[], nodeIds: string[], id: string, createdAt: Date, updatedAt: Date, deletedAt: Date | null);
-    constructor(title: string, description: string  | null, tags: string[], fileIds: string[], nodeIds: string[], id?: string, createdAt?: Date, updatedAt?: Date, deletedAt?: Date | null) {
+    @IsOptional()
+    @IsArray()
+    @ValidateNested({ each: true })
+    relations: DocumentRelation[];
+
+    constructor(title: string, description: string | null, tags: string[], fileIds: string[], nodeIds: string[], relations: DocumentRelation[]);
+    constructor(title: string, description: string | null, tags: string[], fileIds: string[], nodeIds: string[], relations: DocumentRelation[], id: string, createdAt: Date, updatedAt: Date, deletedAt: Date | null);
+    constructor(title: string, description: string  | null, tags: string[], fileIds: string[], nodeIds: string[], relations: DocumentRelation[], id?: string, createdAt?: Date, updatedAt?: Date, deletedAt?: Date | null) {
         if (arguments.length <= 4) {
             super();
         } else {
@@ -39,6 +49,7 @@ export class Document extends BaseModel {
         this.tags = tags;
         this.fileIds = fileIds;
         this.nodeIds = nodeIds;
+        this.relations = relations;
 
         ValidateObject(this);
     }
@@ -76,5 +87,50 @@ export class Document extends BaseModel {
 
     detachFromNode(nodeId: string): void {
         this.nodeIds = this.nodeIds.filter(id => id !== nodeId);
+    }
+
+    relateTo(document: Document, relation: DocumentRelationType): void {
+        if (this.relations.find(r => r.documentId === document.id && r.type === relation)) {
+            throw new Error("Document already related");
+        }
+        this.relations.push(new DocumentRelation(document.id, relation));
+    }
+
+    unrelateFrom(document: Document, relation: DocumentRelationType): void {
+        this.relations = this.relations.filter(r => r.documentId !== document.id || r.type !== relation);
+    }
+}
+
+
+export class DocumentRelation {
+    // id of document to that this document is related to
+    @IsUUID()
+    documentId: string;
+
+    @IsOptional()
+    @IsInstance(Document)
+    document?: Document;
+
+    @IsEnum(DocumentRelationType)
+    type: DocumentRelationType;
+
+    @IsBefore('updatedAt')
+    createdAt: Date;
+
+    updatedAt: Date;
+
+    @IsOptional()
+    @IsDate()
+    deletedAt: Date | null;
+
+    constructor(documentId: string, type: DocumentRelationType);
+    constructor(documentId: string, type: DocumentRelationType, createdAt: Date, updatedAt: Date, deletedAt: Date | null);
+    constructor(documentId: string, type: DocumentRelationType, createdAt?: Date, updatedAt?: Date, deletedAt?: Date | null) {
+        this.documentId = documentId;
+        this.type = type;
+        this.createdAt = createdAt || new Date();
+        this.updatedAt = updatedAt || this.createdAt;
+        this.deletedAt = deletedAt || null;
+        ValidateObject(this);
     }
 }

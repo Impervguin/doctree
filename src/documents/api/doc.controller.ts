@@ -3,7 +3,7 @@ import { DocumentService } from '../services/doc.service';
 import { DocumentCreateRequest } from '../services/requests/doc.create';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileValidationPipe } from '../../file/pipes/validate.pipe';
-import { AttachDocumentToNodeRequest, DetachDocumentFromNodeRequest, DocumentUnlinkFileRequest,  } from '../services/requests/doc.link';
+import { AttachDocumentToNodeRequest, DetachDocumentFromNodeRequest, DocumentUnlinkFileRequest, RelateDocumentsRequest, UnrelateDocumentsRequest } from '../services/requests/doc.link';
 import { DocumentUpdateRequest } from '../services/requests/doc.update';
 
 @Controller('docs')
@@ -57,7 +57,7 @@ export class DocumentController {
         await this.documentService.unlinkFile(req);
     }
 
-    @Put(':id')
+    @Put('/info/:id')
     @UsePipes(new ValidationPipe())
     async updateDocument(@Param('id') docId: string, @Body() req: DocumentUpdateRequest) {
         await this.documentService.updateDocument(docId, req);
@@ -66,5 +66,17 @@ export class DocumentController {
     @Delete(':id')
     async deleteDocument(@Param('id') docId: string) {
         await this.documentService.deleteDocument(docId);
+    }
+
+    @Post('/relate')
+    @UsePipes(new ValidationPipe())
+    async relateDocuments(@Body() req: RelateDocumentsRequest) {
+        await this.documentService.relateDocuments(req);
+    }
+
+    @Put('/unrelate')
+    @UsePipes(new ValidationPipe())
+    async unrelateDocuments(@Body() req: UnrelateDocumentsRequest) {
+        await this.documentService.unrelateDocuments(req);
     }
 }

@@ -23,7 +23,7 @@ export class DocumentRepository {
 
         return repo.findOne({
             where: { id: docId },
-            relations: ['tags', 'documentFiles', 'documentNodes']
+            relations: ['tags', 'documentFiles', 'documentNodes', 'relations']
         }).then(entity => entity ? DocumentMapper.toDomain(entity) : null);
     }
 
@@ -49,7 +49,8 @@ export class DocumentRepository {
             relations: [
                 'tags',
                 'documentFiles',
-                'documentNodes'
+                'documentNodes',
+                'relations'
             ]
         });
 

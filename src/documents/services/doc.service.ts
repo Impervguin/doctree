@@ -8,10 +8,12 @@ import { UploadFileService } from "src/file/services/upload.service";
 import { TreeService } from "src/tree/services/tree.service";
 import { Tree } from "src/tree/domain/tree.model";
 import { GetFileResponseFromDomain } from "src/file/services/responses/get.file";
-import { DocumentFileLinkRequest } from "./requests/doc.link";
 import { ConfigService } from '@nestjs/config';
 import { GetNodeWithDocumentsResponse } from "./responses/node.doc.get";
-import { AttachDocumentToNodeRequest, DetachDocumentFromNodeRequest, DocumentUnlinkFileRequest } from "./requests/doc.link";
+import { AttachDocumentToNodeRequest, DetachDocumentFromNodeRequest,
+         DocumentFileLinkRequest, DocumentUnlinkFileRequest,
+         RelateDocumentsRequest, UnrelateDocumentsRequest 
+} from "./requests/doc.link";
 import { formatDate } from "src/utils/date";
 import { DocumentUpdateRequest } from "./requests/doc.update";
 
@@ -29,7 +31,7 @@ export class DocumentService {
     }
 
     async createDocument(req : DocumentCreateRequest): Promise<void> {
-        let doc = new Document(req.title, req.description !== undefined ? req.description : null, req.tags, [], []);
+        let doc = new Document(req.title, req.description !== undefined ? req.description : null, req.tags, [], [], []);
         return this.documentRepository.createDocument(doc);
     }
 
@@ -45,7 +47,13 @@ export class DocumentService {
                         title: doc.title,
                         description: doc.description,
                         tags: doc.tags,
-                        files: doc.files!.map(fileInfo => GetFileResponseFromDomain(fileInfo))
+                        files: doc.files!.map(fileInfo => GetFileResponseFromDomain(fileInfo)),
+                        relations: doc.relations.map(relation => {
+                            return {
+                                documentId: relation.documentId,
+                                type: relation.type
+                            }
+                        })
                     };
                 }
 
@@ -176,7 +184,6 @@ export class DocumentService {
     }
 
 
-
     async updateDocument(docId: string, req: DocumentUpdateRequest): Promise<void> {
         return this.documentRepository.getDocument(docId).then(doc => {
             if (doc === null) {
@@ -199,5 +206,51 @@ export class DocumentService {
 
     async deleteDocument(docId: string): Promise<void> {
         return this.documentRepository.softDeleteDocument(docId);
+    }
+
+    async relateDocuments(req: RelateDocumentsRequest): Promise<void> {
+        return new Promise<void>( (resolve, reject) => {
+            let doc1Promise = this.documentRepository.getDocument(req.documentId0);
+            let doc2Promise = this.documentRepository.getDocument(req.documentId1);
+            return Promise.all([doc1Promise, doc2Promise]).then(docs => {
+                if (docs[0] === null) {
+                    reject(new Error("Document not found"));
+                }
+                if (docs[1] === null) {
+                    reject(new Error("Document not found"));
+                }
+                let doc0: Document = docs[0]!;
+                let doc1: Document = docs[1]!;
+                if (doc0.id === doc1.id) {
+                    reject(new Error("Can't relate to self"));
+                }
+
+                doc0.relateTo(doc1, req.relation);
+                this.documentRepository.updateDocument(doc0).then(resolve).catch(reject);
+            }).catch(reject);
+        });
+    }
+
+    async unrelateDocuments(req: UnrelateDocumentsRequest): Promise<void> {
+        return new Promise<void>( (resolve, reject) => {
+            let doc0Promise = this.documentRepository.getDocument(req.documentId0);
+            let doc1Promise = this.documentRepository.getDocument(req.documentId1);
+            return Promise.all([doc0Promise, doc1Promise]).then(docs => {
+                if (docs[0] === null) {
+                    reject(new Error("Document not found"));
+                }
+                if (docs[1] === null) {
+                    reject(new Error("Document not found"));
+                }
+                let doc0: Document = docs[0]!;
+                let doc1: Document = docs[1]!;
+                if (doc0.id === doc1.id) {
+                    reject(new Error("Can't relate to self"));
+                }
+
+                doc0.unrelateFrom(doc1, req.relation);
+                this.documentRepository.updateDocument(doc0).then(resolve).catch(reject);
+            }).catch(reject);
+        });
     }
 }

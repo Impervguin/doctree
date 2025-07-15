@@ -1,5 +1,6 @@
-import { IsBoolean, IsDefined, IsUUID } from "class-validator";
+import { IsBoolean, IsDefined, IsEnum, IsString, IsUUID } from "class-validator";
 import { BufferedFile } from "src/file/domain/bufferedfile.domain";
+import { DocumentRelationType } from "../../domain/doc.model";
 
 
 export class DocumentFileLinkRequest {
@@ -37,4 +38,26 @@ export class DetachDocumentFromNodeRequest {
 
     @IsUUID('4')
     nodeId: string;
+}
+
+export class RelateDocumentsRequest {
+    @IsUUID('4')
+    documentId0: string;
+
+    @IsUUID('4')
+    documentId1: string;
+
+    @IsEnum(DocumentRelationType)
+    relation: DocumentRelationType;
+}
+
+export class UnrelateDocumentsRequest {
+    @IsUUID('4')
+    documentId0: string;
+
+    @IsUUID('4')
+    documentId1: string;
+
+    @IsEnum(DocumentRelationType)
+    relation: DocumentRelationType;
 }
