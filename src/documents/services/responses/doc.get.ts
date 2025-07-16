@@ -1,4 +1,5 @@
 import { GetFileResponse } from "src/file/services/responses/get.file";
+import { ApiProperty } from '@nestjs/swagger';
 
 
 export interface GetDocumentRelationResponse {

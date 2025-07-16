@@ -1,6 +1,6 @@
 import { Controller, Get, Param, UsePipes, ValidationPipe, Post, Body, Put, BadRequestException, Delete } from '@nestjs/common';
+import { ApiOperation, ApiResponse, ApiBody, ApiConsumes, ApiParam } from '@nestjs/swagger';
 import { TreeService } from '../services/tree.service';
-import { GetTreeRequest } from '../services/requests/get.request';
 import { GetAllTreesResponseDto, GetRootTreeResponseDto, GetSubTreeResponseDto } from '../services/responses/get.response';
 import { CreateNodeRequest, CreateRootRequest } from '../services/requests/create.request';
 import { UpdateNodeParentRequest } from '../services/requests/update.request';
@@ -14,35 +14,60 @@ export class TreeController {
 
   @Get('sub/:id')
   @UsePipes(new ValidationPipe())
-  async getSubTree(@Param() req : GetTreeRequest) : Promise<GetSubTreeResponseDto> {
-    return await this.treeService.getSubTree(req);
+  @ApiOperation({ summary: 'Get subtree' })
+  @ApiResponse({ status: 200, description: 'Subtree found' })
+  @ApiResponse({ status: 404, description: 'Subtree not found' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiParam({ name: 'id', type: String, description: 'Node id' })
+  async getSubTree(@Param('id') id : string) : Promise<GetSubTreeResponseDto> {
+    return await this.treeService.getSubTree(id);
   }
 
   @Get('root/:id')
   @UsePipes(new ValidationPipe())
-  async getRootTree(@Param() req : GetTreeRequest) : Promise<GetRootTreeResponseDto> {
-    return await this.treeService.getRootTree(req);
+  @ApiOperation({ summary: 'Get root tree' })
+  @ApiResponse({ status: 200, description: 'Root tree found' })
+  @ApiResponse({ status: 404, description: 'Root tree not found' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiParam({ name: 'id', type: String, description: 'Node id' })
+  async getRootTree(@Param('id') id : string) : Promise<GetRootTreeResponseDto> {
+    return await this.treeService.getRootTree(id);
   }
 
   @Get()
+  @ApiOperation({ summary: 'Get all trees' })
+  @ApiResponse({ status: 200, description: 'Trees found' })
   async getAllTrees(): Promise<GetAllTreesResponseDto> {
     return await this.treeService.getAllTrees();
   }
 
   @Post('node')
   @UsePipes(new ValidationPipe())
+  @ApiOperation({ summary: 'Create node' })
+  @ApiResponse({ status: 201, description: 'Node created' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiBody({ type: CreateNodeRequest })
   async createNode(@Body() req : CreateNodeRequest) {
     await this.treeService.createNode(req);
   }
 
   @Post('root')
   @UsePipes(new ValidationPipe())
+  @ApiOperation({ summary: 'Create root' })
+  @ApiResponse({ status: 201, description: 'Root created' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiBody({ type: CreateRootRequest })
   async createRoot(@Body() req : CreateRootRequest) {
     await this.treeService.createRoot(req);
   }
 
   @Put('parent')
   @UsePipes(new ValidationPipe())
+  @ApiOperation({ summary: 'Update node' })
+  @ApiResponse({ status: 200, description: 'Node updated' })
+  @ApiResponse({ status: 404, description: 'Node not found' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiBody({ type: UpdateNodeParentRequest })
   async updateNode(@Body() req : UpdateNodeParentRequest) {
     try {
       await this.treeService.updateNode(req);
@@ -56,12 +81,22 @@ export class TreeController {
 
   @Delete('node/:id')
   @UsePipes(new ValidationPipe())
+  @ApiOperation({ summary: 'Delete node' })
+  @ApiResponse({ status: 200, description: 'Node deleted' })
+  @ApiResponse({ status: 404, description: 'Node not found' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiParam({ name: 'id', type: String, description: 'Node id' })
   async deleteNode(@Param() req : DeleteNodeRequest) {
     await this.treeService.deleteNode(req);
   }
 
   @Delete('root/:id')
   @UsePipes(new ValidationPipe())
+  @ApiOperation({ summary: 'Delete root' })
+  @ApiResponse({ status: 200, description: 'Root deleted' })
+  @ApiResponse({ status: 404, description: 'Root not found' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiParam({ name: 'id', type: String, description: 'Node id' })
   async deleteRoot(@Param() req : DeleteRootRequest) {
     await this.treeService.deleteRoot(req);
   }

@@ -3,7 +3,6 @@ import { NodeRepository } from '../infra/node.repository';
 import { Node } from '../domain/node.model';
 import { GetAllNodeResponseDto, GetNodeResponseDto } from './responses/get.response';
 // import { IsUUID } from 'class-validator';
-import { GetNodeRequest } from './requests/get.request';
 import { UpdateNodeTitleRequest } from './requests/update.request';
 import { InjectRepository } from '@nestjs/typeorm';
 
@@ -24,8 +23,8 @@ export class NodeService {
   //   return node;
   // }
 
-  async getNode(req: GetNodeRequest): Promise<GetNodeResponseDto> {
-    const node = await this.nodeRepository.getNode(req.id);
+  async getNode(nodeId: string): Promise<GetNodeResponseDto> {
+    const node = await this.nodeRepository.getNode(nodeId);
     if (node === null) {
       throw new NodeNotFoundError('Node not found');
     }
