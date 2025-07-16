@@ -4,7 +4,6 @@ import { TreeService } from '../services/tree.service';
 import { GetAllTreesResponseDto, GetRootTreeResponseDto, GetSubTreeResponseDto } from '../services/responses/get.response';
 import { CreateNodeRequest, CreateRootRequest } from '../services/requests/create.request';
 import { UpdateNodeParentRequest } from '../services/requests/update.request';
-import { DeleteNodeRequest, DeleteRootRequest } from '../services/requests/delete.request';
 import { TreeHasCycleError } from '../domain/tree.model';
 
 
@@ -86,8 +85,8 @@ export class TreeController {
   @ApiResponse({ status: 404, description: 'Node not found' })
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiParam({ name: 'id', type: String, description: 'Node id' })
-  async deleteNode(@Param() req : DeleteNodeRequest) {
-    await this.treeService.deleteNode(req);
+  async deleteNode(@Param('id') id : string) {
+    await this.treeService.deleteNode(id);
   }
 
   @Delete('root/:id')
@@ -97,7 +96,7 @@ export class TreeController {
   @ApiResponse({ status: 404, description: 'Root not found' })
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiParam({ name: 'id', type: String, description: 'Node id' })
-  async deleteRoot(@Param() req : DeleteRootRequest) {
-    await this.treeService.deleteRoot(req);
+  async deleteRoot(@Param('id') id : string) {
+    await this.treeService.deleteRoot(id);
   }
 }

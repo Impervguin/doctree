@@ -4,7 +4,6 @@ import { Tree } from '../domain/tree.model';
 import { CreateNodeRequest, CreateRootRequest } from './requests/create.request';
 import { UpdateNodeParentRequest } from './requests/update.request';
 import { TreeHasCycleError } from '../domain/tree.model';
-import { DeleteNodeRequest, DeleteRootRequest } from './requests/delete.request';
 
 
 @Injectable()
@@ -48,22 +47,22 @@ export class TreeService {
     })
   }
 
-  async deleteNode(req: DeleteNodeRequest): Promise<void> {
-    await this.treeRepository.updateNodeAsPart(req.id, tree => {
-      if (tree.id === req.id) {
+  async deleteNode(id: string): Promise<void> {
+    await this.treeRepository.updateNodeAsPart(id, tree => {
+      if (tree.id === id) {
         throw new Error('Node is Root');
       }
-      tree.deleteChild(req.id);
+      tree.deleteChild(id);
       return Promise.resolve(tree);
     });
-    await this.treeRepository.deleteNode(req.id);
+    await this.treeRepository.deleteNode(id);
   }
 
-  async deleteRoot(req: DeleteRootRequest): Promise<void> {
-      let isRoot = await this.treeRepository.isRootNode(req.id);
+  async deleteRoot(id: string): Promise<void> {
+      let isRoot = await this.treeRepository.isRootNode(id);
       if (!isRoot) {
         throw new Error('Node is not root');
       }
-      this.treeRepository.deleteNodeCascade(req.id);
+      this.treeRepository.deleteNodeCascade(id);
   }
 }

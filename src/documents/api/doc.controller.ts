@@ -132,7 +132,7 @@ export class DocumentController {
     @Post('/relate')
     @UsePipes(new ValidationPipe())
     @ApiOperation({ summary: 'Setup relation between documents' })
-    @ApiResponse({ status: 200, description: 'Documents related' })
+    @ApiResponse({ status: 201, description: 'Documents related' })
     @ApiResponse({ status: 404, description: 'Document not found' })
     @ApiResponse({ status: 400, description: 'Bad request' })    
     @ApiBody({ type: RelateDocumentsRequest })
