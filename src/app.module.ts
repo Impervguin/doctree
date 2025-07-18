@@ -7,7 +7,6 @@ import { TreeModule } from './tree/tree.module';
 import { MinioModule } from './minio/minio.module';
 import { FileModule } from './file/file.module';
 import { DocumentModule } from './documents/doc.module';
-import { ParsersModule } from './text-parser/parsers/parsers.module';
 import { ParseModule } from './text-parser/parse.module';
 
 @Module({

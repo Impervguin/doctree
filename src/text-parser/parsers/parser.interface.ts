@@ -3,8 +3,7 @@ import { Buffer } from "buffer";
 
 export class ParserResponse {
     text: string;
-    mimeType: string;
-
+    
     parsePercentage: number;
     parseComment?: string;
 }
