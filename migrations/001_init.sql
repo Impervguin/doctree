@@ -24,6 +24,18 @@ CREATE TABLE IF NOT EXISTS documents (
     CONSTRAINT created_at_before CHECK (created_at <= updated_at)
 );
 
+CREATE TABLE IF NOT EXISTS documents_tags (
+    document_id UUID NOT NULL,
+    tag TEXT NOT NULL,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ,
+    PRIMARY KEY (document_id, tag),
+    CONSTRAINT fk_documents_tags_document_id FOREIGN KEY (document_id) REFERENCES documents (id),
+    CONSTRAINT created_at_before CHECK (created_at <= updated_at)
+);
+
 CREATE TABLE IF NOT EXISTS documents_nodes (
     document_id UUID NOT NULL,
     node_id UUID NOT NULL,

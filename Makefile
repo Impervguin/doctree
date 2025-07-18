@@ -9,10 +9,13 @@ define compose_file
 endef
 
 start:
-	npm run start
+	npm run start 
 
 dev-start:
 	npm run start:dev
+
+mock:
+	cd ./migrations && ./bin/python3 ./cocker-mocker.py
 
 %up:
 	$(DOCKER) compose --env-file $(COMPOSE_ENV) -f $(call compose_file,$@) up -d $(CONTAINERS)
