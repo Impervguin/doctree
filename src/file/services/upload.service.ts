@@ -5,8 +5,9 @@ import { ConfigService } from '@nestjs/config';
 import { StoredFileInfo } from "../domain/meta.domain";
 import { Logger } from '@nestjs/common';
 import { UploadRequest } from "./requests/upload.request";
-import { GetFileResponse } from "./responses/get.file";
+import { DownloadFileResponse, GetFileResponse, DownloadFileResponseFromDomain } from "./responses/get.file";
 import { GetFileResponseFromDomain } from "./responses/get.file";
+import { FileInfo } from "../infra/info.entity";
 
 @Injectable()
 export class UploadFileService {
@@ -43,20 +44,16 @@ export class UploadFileService {
 		return this.info.get(fileId).then(fileInfo => fileInfo !== null ? GetFileResponseFromDomain(fileInfo) : null);
 	}
 
-	async loadFile(fileId: string): Promise<Buffer> {
-		const fileInfo = await this.info.get(fileId);
-		
-		if (!fileInfo) {
-			throw new Error(`File with ID ${fileId} not found`);
-		}
+	async downloadFile(fileId: string): Promise<DownloadFileResponse | null> {
+		return this.info.get(fileId).then(fileInfo => {
+			if (fileInfo !== null) {
+				return this.fileRep.loadObject(fileInfo.filebucket, fileInfo.filekey)
+				.then(fileBuffer => DownloadFileResponseFromDomain(fileInfo, fileBuffer))
+				.catch(err => {throw new Error(`Failed to load file with ID ${fileId}`)});
+			}
 
-		try {
-			const fileBuffer = await this.fileRep.loadObject(fileInfo.filebucket, fileInfo.filekey);
-			return fileBuffer;
-		} catch (error) {
-			this.logger.error(`Error loading file with ID ${fileId}`, error);
-			throw new Error(`Failed to load file with ID ${fileId}`);
-		}
+			return null;
+		});
 	}
 }
 
