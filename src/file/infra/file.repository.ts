@@ -33,4 +33,27 @@ export class FileRepository {
     async getUrl(bucketName: string, objectName: string): Promise<string> {
         return this.minioClient.presignedUrl('GET', bucketName, objectName);
     }
+
+    async loadObject(bucketName: string, objectName: string): Promise<Buffer> {
+        return new Promise((resolve, reject) => {
+            const chunks: Buffer[] = [];
+            
+            this.minioClient.getObject(
+                bucketName,
+                objectName
+            ).then(stream => {
+                stream.on('data', (chunk) => {
+                    chunks.push(chunk);
+                });
+                
+                stream.on('end', () => {
+                    resolve(Buffer.concat(chunks));
+                });
+                
+                stream.on('error', (err) => {
+                    reject(err);
+                });
+            }).catch(reject);
+        });
+    }
 }

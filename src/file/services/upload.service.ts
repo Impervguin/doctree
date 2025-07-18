@@ -42,5 +42,21 @@ export class UploadFileService {
 	async getFile(fileId: string): Promise<GetFileResponse | null> {
 		return this.info.get(fileId).then(fileInfo => fileInfo !== null ? GetFileResponseFromDomain(fileInfo) : null);
 	}
+
+	async loadFile(fileId: string): Promise<Buffer> {
+		const fileInfo = await this.info.get(fileId);
+		
+		if (!fileInfo) {
+			throw new Error(`File with ID ${fileId} not found`);
+		}
+
+		try {
+			const fileBuffer = await this.fileRep.loadObject(fileInfo.filebucket, fileInfo.filekey);
+			return fileBuffer;
+		} catch (error) {
+			this.logger.error(`Error loading file with ID ${fileId}`, error);
+			throw new Error(`Failed to load file with ID ${fileId}`);
+		}
+	}
 }
 
