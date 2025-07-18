@@ -7,9 +7,11 @@ import { TreeModule } from './tree/tree.module';
 import { MinioModule } from './minio/minio.module';
 import { FileModule } from './file/file.module';
 import { DocumentModule } from './documents/doc.module';
+import { ParsersModule } from './text-parser/parsers/parsers.module';
+import { ParseModule } from './text-parser/parse.module';
 
 @Module({
-  imports: [DatabaseModule, MinioModule, NodeModule, TreeModule, FileModule, DocumentModule],
+  imports: [DatabaseModule, MinioModule, NodeModule, TreeModule, FileModule, DocumentModule, ParseModule],
   controllers: [AppController],
   providers: [AppService],
 })
