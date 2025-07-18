@@ -126,7 +126,7 @@ export class DocumentService {
                         reject(new Error("Document not found"));
                     }
                     // get the tree to which the document will be attached
-                    this.treeService.getRootTree({id: req.nodeId}).then(rootTree => {
+                    this.treeService.getRootTree(req.nodeId).then(rootTree => {
                         // check if the document is already attached to the node
                         let node: Tree | null = rootTree.find(node => doc!.nodeIds.includes(node.id));
                         // if the document is already attached to the node, and we don't want to move it, reject
