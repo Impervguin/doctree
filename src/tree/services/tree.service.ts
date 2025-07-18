@@ -1,23 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { TreeRepository } from '../infra/tree.repository';
 import { Tree } from '../domain/tree.model';
-import { GetTreeRequest } from './requests/get.request';
 import { CreateNodeRequest, CreateRootRequest } from './requests/create.request';
 import { UpdateNodeParentRequest } from './requests/update.request';
 import { TreeHasCycleError } from '../domain/tree.model';
-import { DeleteNodeRequest, DeleteRootRequest } from './requests/delete.request';
 
 
 @Injectable()
 export class TreeService {
   constructor(private readonly treeRepository: TreeRepository) {}
 
-  async getSubTree(req: GetTreeRequest): Promise<Tree> {
-    return this.treeRepository.getTreeAsRoot(req.id);
+  async getSubTree(id: string): Promise<Tree> {
+    return this.treeRepository.getTreeAsRoot(id);
   }
 
-  async getRootTree(req: GetTreeRequest): Promise<Tree> {
-    return this.treeRepository.getTreeAsPart(req.id);
+  async getRootTree(id: string): Promise<Tree> {
+    return this.treeRepository.getTreeAsPart(id);
   }
 
   async getAllTrees(): Promise<Tree[]> {
@@ -49,22 +47,22 @@ export class TreeService {
     })
   }
 
-  async deleteNode(req: DeleteNodeRequest): Promise<void> {
-    await this.treeRepository.updateNodeAsPart(req.id, tree => {
-      if (tree.id === req.id) {
+  async deleteNode(id: string): Promise<void> {
+    await this.treeRepository.updateNodeAsPart(id, tree => {
+      if (tree.id === id) {
         throw new Error('Node is Root');
       }
-      tree.deleteChild(req.id);
+      tree.deleteChild(id);
       return Promise.resolve(tree);
     });
-    await this.treeRepository.deleteNode(req.id);
+    await this.treeRepository.deleteNode(id);
   }
 
-  async deleteRoot(req: DeleteRootRequest): Promise<void> {
-      let isRoot = await this.treeRepository.isRootNode(req.id);
+  async deleteRoot(id: string): Promise<void> {
+      let isRoot = await this.treeRepository.isRootNode(id);
       if (!isRoot) {
         throw new Error('Node is not root');
       }
-      this.treeRepository.deleteNodeCascade(req.id);
+      this.treeRepository.deleteNodeCascade(id);
   }
 }
