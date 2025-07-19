@@ -8,8 +8,8 @@ export class StoredFileInfo extends BaseModel {
     filekey: string;
 
     constructor(title: string, description: string | null, filebucket: string, filename: string);
-    constructor(title: string, description: string | null, filebucket: string, filename: string, id: string, createdAt: Date, updatedAt: Date, deletedAt: Date);
-    constructor(title: string, description: string | null, filebucket: string, filename: string, id?: string, createdAt?: Date, updatedAt?: Date, deletedAt?: Date) {
+    constructor(title: string, description: string | null, filebucket: string, filename: string, id: string, createdAt: Date, updatedAt: Date, deletedAt: Date | null);
+    constructor(title: string, description: string | null, filebucket: string, filename: string, id?: string, createdAt?: Date, updatedAt?: Date, deletedAt?: Date | null) {
         if (arguments.length <= 4) {
             super();
         } else {
