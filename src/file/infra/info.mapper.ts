@@ -18,6 +18,6 @@ export class FileInfoMapper {
     }
 
     static toDomain(fileInfo: FileInfo): StoredFileInfo {
-        return new StoredFileInfo(fileInfo.title, fileInfo.description, fileInfo.filebucket, fileInfo.filekey);
+        return new StoredFileInfo(fileInfo.title, fileInfo.description, fileInfo.filebucket, fileInfo.filekey, fileInfo.id, fileInfo.createdAt, fileInfo.updatedAt, fileInfo.deletedAt);
     }
 }
