@@ -23,9 +23,10 @@ export class ParseService {
             throw new FileNotFoundError(req.fileId);
         }
 
-        const mimeType = await fileTypeFromBuffer(file.file);
+        let mimeType = await fileTypeFromBuffer(file.file);
         if (mimeType === undefined) {
-            throw new Error(`Failed to determine MIME type of file with ID ${req.fileId}`);
+            this.logger.warn(`Failed to determine MIME type of file with ID ${req.fileId}, using text/plain`);
+            mimeType = { mime: 'text/plain', ext: 'txt' };
         }
 
         const parser = this.parserRegistry.getParser(mimeType.mime);
