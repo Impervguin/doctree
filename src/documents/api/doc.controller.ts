@@ -120,6 +120,7 @@ export class DocumentController {
     }
 
     @Delete(':id')
+    @UsePipes(new ValidationPipe())
     @ApiOperation({ summary: 'Delete document' })
     @ApiResponse({ status: 200, description: 'Document deleted' })
     @ApiResponse({ status: 404, description: 'Document not found (WIP)' })
@@ -149,5 +150,15 @@ export class DocumentController {
     @ApiBody({ type: UnrelateDocumentsRequest })
     async unrelateDocuments(@Body() req: UnrelateDocumentsRequest) {
         await this.documentService.unrelateDocuments(req);
+    }
+
+    @Get('/search')
+    @UsePipes(new ValidationPipe())
+    @ApiOperation({ summary: 'Search documents' })
+    @ApiResponse({ status: 200, description: 'Documents found' })
+    @ApiResponse({ status: 400, description: 'Bad request' })
+    @ApiQuery({ name: 'q', type: String, description: 'Search query' })
+    async searchDocuments(@Query() query: Record<string, any>) {
+        return this.documentService.searchDocuments(query);
     }
 }
