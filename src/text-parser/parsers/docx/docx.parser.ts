@@ -36,11 +36,13 @@ export class DocxParser implements Parser {
             }
         }
 
+        const parsedDocument = await this._parseDocument(documentFile.data, footnotesFile?.data, endnotesFile?.data);
+        const parsePercentage = parsedDocument.length / file.length * 100;
 
         return {
-            text: await this._parseDocument(documentFile.data, footnotesFile?.data, endnotesFile?.data),
-            parsePercentage: 0,
-            parseComment: 'Not implemented'
+            text: parsedDocument,
+            parsePercentage: parsePercentage,
+            parseComment: 'Docx file contain a lot of metadata about visual formatting, so percentage text may be low'
         }
     }
     supports(fileType: string): boolean {
