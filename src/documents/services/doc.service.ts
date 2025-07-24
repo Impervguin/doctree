@@ -16,6 +16,7 @@ import { AttachDocumentToNodeRequest, DetachDocumentFromNodeRequest,
 } from "./requests/doc.link";
 import { formatDate } from "src/utils/date";
 import { DocumentUpdateRequest } from "./requests/doc.update";
+import { DocumentSearchRequest } from "./requests/doc.search";
 
 @Injectable()
 export class DocumentService {
@@ -254,5 +255,9 @@ export class DocumentService {
         });
     }
 
-    
+    public searchDocuments(query: DocumentSearchRequest): Promise<Document[]> {
+        return new Promise((resolve, reject) => {
+            this.documentRepository.searchDocuments(query).then(resolve).catch(reject);
+        });
+    }
 }
