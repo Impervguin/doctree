@@ -1,29 +1,27 @@
-import { SelectQueryBuilder, ObjectLiteral, EntityTarget } from 'typeorm';
+import { SelectQueryBuilder, ObjectLiteral } from 'typeorm';
 import { IFilter } from './filter.interface';
 
-export class TextFilter<T extends ObjectLiteral, DTO> implements IFilter<T> {
+export class TextFilter<T extends ObjectLiteral, DTO extends Record<string, any>> implements IFilter<T> {
 	private searchTerm?: string;
-	private fieldName: keyof T;
-	private queryParamName: keyof DTO;
 
 	constructor(
-		fieldName: keyof T,
-		queryParamName: keyof DTO,
-	) {
-		this.fieldName = fieldName;
-		this.queryParamName = queryParamName;
-	}
+		private readonly fieldName: Extract<keyof T, string>,
+		private readonly queryParamName: Extract<keyof DTO, string>,
+	) {}
 
 	parse(query: Record<string, any>): void {
-		const value = query[String(this.queryParamName)];
+		const value = query[this.queryParamName];
 		this.searchTerm = typeof value === 'string' && value.trim() ? value.trim() : undefined;
 	}
 
 	apply(query: SelectQueryBuilder<T>): void {
 		if (!this.searchTerm) return;
 
+		const paramName = `search_${this.fieldName}`;
+
 		query.andWhere(
-			`${query.alias}.${String(this.fieldName)} LIKE LOWER('%${this.searchTerm}%')`,
+			`LOWER(${query.alias}.${this.fieldName}) LIKE :${paramName}`,
+			{ [paramName]: `%${this.searchTerm.toLowerCase()}%` }
 		);
 	}
 }

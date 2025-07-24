@@ -1,41 +1,50 @@
 import { IFilter } from './filter.interface';
-import { SelectQueryBuilder, ObjectLiteral, getMetadataArgsStorage, EntityTarget } from 'typeorm';
+import { SelectQueryBuilder, ObjectLiteral, EntityTarget } from 'typeorm';
 
-export class TextOneToManyFilter<T extends ObjectLiteral, R extends ObjectLiteral, DTO> implements IFilter<T> {
-    private searchTerm?: string;
-	private queryParamName: keyof DTO;
-    private relationField: keyof R;
-    private aliasCounter = 0;
-    private relationName: string;
+export class TextOneToManyFilter<
+	T extends ObjectLiteral,
+	R extends ObjectLiteral,
+	DTO extends Record<string, any>
+> implements IFilter<T> {
+	private searchTerm?: string;
+	private aliasCounter = 0;
+	private relationName: string;
 
-    constructor(
-        relationField: keyof R,
-        queryParamName: keyof DTO,
-        private rootJoinField: keyof T,
-        private relationJoinField: keyof R,
-        relation: EntityTarget<R>
-    ) {
-        this.relationField = relationField;
-        this.queryParamName = queryParamName;
-        if (typeof relation === 'function') {
-            this.relationName = relation.name;
-        } else {
-            this.relationName = String(relation);
-        }
-    }
+	constructor(
+		private readonly relationField: Extract<keyof R, string>,
+		private readonly queryParamName: Extract<keyof DTO, string>,
+		private readonly rootJoinField: Extract<keyof T, string>,
+		private readonly relationJoinField: Extract<keyof R, string>,
+		relation: EntityTarget<R>
+	) {
+		if (typeof relation === 'function') {
+			this.relationName = relation.name;
+		} else {
+			this.relationName = String(relation);
+		}
+	}
 
-    parse(query: Record<string, any>): void {
-        const value = query[String(this.queryParamName)];
-        this.searchTerm = typeof value === 'string' && value.trim() ? value.trim() : undefined;
-    }
+	parse(query: Record<string, any>): void {
+		const value = query[this.queryParamName];
+		this.searchTerm = typeof value === 'string' && value.trim() ? value.trim() : undefined;
+	}
 
-    apply(query: SelectQueryBuilder<T>): void {
-        if (!this.searchTerm) return;
+	apply(query: SelectQueryBuilder<T>): void {
+		if (!this.searchTerm) return;
 
-        const currAlias = `${this.relationName}_${this.aliasCounter++}`;
+		const currAlias = `${this.relationName}_${this.aliasCounter++}`;
 
-        query.leftJoin(this.relationName, currAlias, `${currAlias}.${String(this.relationJoinField)} = ${query.alias}.${String(this.rootJoinField)}`);
+		query.leftJoin(
+			this.relationName,
+			currAlias,
+			`${currAlias}.${this.relationJoinField} = ${query.alias}.${this.rootJoinField}`
+		);
 
-        query.andWhere(`${currAlias}.${String(this.relationField)} LIKE LOWER('%${this.searchTerm}%')`);
-    }
+		const paramName = `search_${currAlias}_${this.relationField}`;
+
+		query.andWhere(
+			`LOWER(${currAlias}.${this.relationField}) LIKE :${paramName}`,
+			{ [paramName]: `%${this.searchTerm.toLowerCase()}%` }
+		);
+	}
 }

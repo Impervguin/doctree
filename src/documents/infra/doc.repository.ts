@@ -8,8 +8,6 @@ import { DocumentSearchRequest } from "../services/requests/doc.search";
 import { CompositeFilter } from "src/database/filters/composite.filter";
 import { TextFilter } from "src/database/filters/text.filter";
 import { TextOneToManyFilter } from "src/database/filters/text.otm.filter";
-import { log } from "console";
-
 
 @Injectable()
 export class DocumentRepository {
@@ -89,21 +87,29 @@ export class DocumentRepository {
     }
 
     async searchDocuments(req: DocumentSearchRequest): Promise<Document[]> {
-        let repo = this.dataSource.getRepository(DocumentEntity);
+        const repo = this.dataSource.getRepository(DocumentEntity);
 
         const filter = new CompositeFilter<DocumentEntity>()
             .addFilter(new TextFilter<DocumentEntity, DocumentSearchRequest>('title', 'title'))
             .addFilter(new TextFilter<DocumentEntity, DocumentSearchRequest>('description', 'description'))
-            .addFilter(new TextOneToManyFilter<DocumentEntity, DocumentTagEntity, DocumentSearchRequest>('tag', 'tag', 'id', 'documentId', DocumentTagEntity))
+            .addFilter(
+                new TextOneToManyFilter<DocumentEntity, DocumentTagEntity, DocumentSearchRequest>(
+                    'tag',
+                    'tag',
+                    'id',
+                    'documentId',
+                    DocumentTagEntity
+                )
+            );
 
         filter.parse(req);
 
         const query = repo.createQueryBuilder();
+
         filter.apply(query);
 
-        log(query.getQuery())
-
         const entities = await query.getMany();
-        return (entities ?? []).map(entity => DocumentMapper.toDomain(entity));
+
+        return entities.map(entity => DocumentMapper.toDomain(entity));
     }
 }
