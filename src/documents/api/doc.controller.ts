@@ -4,8 +4,9 @@ import { DocumentCreateRequest } from '../services/requests/doc.create';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileValidationPipe } from '../../file/pipes/validate.pipe';
 import { AttachDocumentToNodeRequest, DetachDocumentFromNodeRequest, DocumentUnlinkFileRequest, RelateDocumentsRequest, UnrelateDocumentsRequest } from '../services/requests/doc.link';
-import { ApiOperation, ApiResponse, ApiBody, ApiConsumes, ApiParam } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiBody, ApiConsumes, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { DocumentUpdateRequest } from '../services/requests/doc.update';
+import { DocumentSearchRequest } from '../services/requests/doc.search';
 
 @Controller('docs')
 export class DocumentController {
@@ -19,6 +20,15 @@ export class DocumentController {
     @ApiBody({ type: DocumentCreateRequest })
     async createDocument(@Body() req: DocumentCreateRequest) {
         await this.documentService.createDocument(req);
+    }
+
+    @Get('search')
+    @UsePipes(new ValidationPipe())
+    @ApiOperation({ summary: 'Search documents' })
+    @ApiResponse({ status: 200, description: 'Documents found' })
+    @ApiResponse({ status: 400, description: 'Bad request' })
+    async searchDocuments(@Query() query: DocumentSearchRequest) {
+        return this.documentService.searchDocuments(query);
     }
 
     @Get(':id')
@@ -120,6 +130,7 @@ export class DocumentController {
     }
 
     @Delete(':id')
+    @UsePipes(new ValidationPipe())
     @ApiOperation({ summary: 'Delete document' })
     @ApiResponse({ status: 200, description: 'Document deleted' })
     @ApiResponse({ status: 404, description: 'Document not found (WIP)' })

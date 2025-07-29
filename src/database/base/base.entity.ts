@@ -1,4 +1,3 @@
-import { BaseModel } from '../../base/base.model';
 import {
   PrimaryGeneratedColumn,
   CreateDateColumn,

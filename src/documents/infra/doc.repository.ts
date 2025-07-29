@@ -4,7 +4,10 @@ import { DocumentEntity, DocumentTagEntity } from "./doc.entity";
 import { DocumentMapper } from "./doc.mapper";
 import { Injectable } from "@nestjs/common";
 import { NodeEntity } from "./doc.entity";
-
+import { DocumentSearchRequest } from "../services/requests/doc.search";
+import { CompositeFilter } from "src/database/filters/composite.filter";
+import { TextFilter } from "src/database/filters/text.filter";
+import { TextOneToManyFilter } from "src/database/filters/text.otm.filter";
 
 @Injectable()
 export class DocumentRepository {
@@ -42,9 +45,7 @@ export class DocumentRepository {
             where: {
                 documentNodes: {
                     nodeId: nodeId,
-                    deletedAt: IsNull()
                 },
-                deletedAt: IsNull()
             },
             relations: [
                 'tags',
@@ -83,5 +84,32 @@ export class DocumentRepository {
                 .where('id = :id', { id: docId })
                 .execute().then(_ => resolve()).catch(reject);
         });
+    }
+
+    async searchDocuments(req: DocumentSearchRequest): Promise<Document[]> {
+        const repo = this.dataSource.getRepository(DocumentEntity);
+
+        const filter = new CompositeFilter<DocumentEntity>()
+            .addFilter(new TextFilter<DocumentEntity, DocumentSearchRequest>('title', 'title'))
+            .addFilter(new TextFilter<DocumentEntity, DocumentSearchRequest>('description', 'description'))
+            .addFilter(
+                new TextOneToManyFilter<DocumentEntity, DocumentTagEntity, DocumentSearchRequest>(
+                    'tag',
+                    'tag',
+                    'id',
+                    'documentId',
+                    DocumentTagEntity
+                )
+            );
+
+        filter.parse(req);
+
+        const query = repo.createQueryBuilder();
+
+        filter.apply(query);
+
+        const entities = await query.getMany();
+
+        return entities.map(entity => DocumentMapper.toDomain(entity));
     }
 }

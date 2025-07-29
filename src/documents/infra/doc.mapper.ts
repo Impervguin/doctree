@@ -6,12 +6,18 @@ export class DocumentMapper {
         return new Document(
             entity.title,
             entity.description,
-            entity.tags.map(tag => tag.tag),
-            entity.documentFiles !== undefined ? entity.documentFiles.map(file => file.fileId) : [],
-            entity.documentNodes !== undefined ? entity.documentNodes.map(node => node.nodeId) : [],
-            entity.relations !== undefined ? entity.relations.map(relation => {
-                return new DocumentRelation(relation.documentId1, relation.relation, relation.createdAt!, relation.updatedAt!, relation.deletedAt!); 
-            }) : [],
+            (entity.tags ?? []).map(tag => tag.tag),
+            (entity.documentFiles ?? []).map(file => file.fileId),
+            (entity.documentNodes ?? []).map(node => node.nodeId),
+            (entity.relations ?? []).map(relation => 
+                new DocumentRelation(
+                    relation.documentId1, 
+                    relation.relation, 
+                    relation.createdAt!, 
+                    relation.updatedAt!, 
+                    relation.deletedAt!
+                )
+            ),
             entity.id,
             entity.createdAt,
             entity.updatedAt,

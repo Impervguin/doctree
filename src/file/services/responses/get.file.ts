@@ -1,6 +1,6 @@
 import { StoredFileInfo } from "src/file/domain/meta.domain";
 
-export interface GetFileResponse {
+export class GetFileResponse {
     id: string;
     title: string;
     description: string | null;
@@ -15,3 +15,21 @@ export function GetFileResponseFromDomain(fileInfo: StoredFileInfo): GetFileResp
         fileUrl: fileInfo.filebucket + "/" + fileInfo.filekey
     };
 }
+
+export class DownloadFileResponse {
+    id: string;
+    title: string;
+    description: string | null;
+    fileUrl: string;
+    file: Buffer;
+}
+
+export function DownloadFileResponseFromDomain(fileInfo: StoredFileInfo, file: Buffer): DownloadFileResponse {
+    return {
+        id: fileInfo.id,
+        title: fileInfo.title,
+        description: fileInfo.description,
+        fileUrl: fileInfo.filebucket + "/" + fileInfo.filekey,
+        file: file
+    };  
+}   

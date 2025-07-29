@@ -5,8 +5,9 @@ import { ConfigService } from '@nestjs/config';
 import { StoredFileInfo } from "../domain/meta.domain";
 import { Logger } from '@nestjs/common';
 import { UploadRequest } from "./requests/upload.request";
-import { GetFileResponse } from "./responses/get.file";
+import { DownloadFileResponse, GetFileResponse, DownloadFileResponseFromDomain } from "./responses/get.file";
 import { GetFileResponseFromDomain } from "./responses/get.file";
+import { FileInfo } from "../infra/info.entity";
 
 @Injectable()
 export class UploadFileService {
@@ -41,6 +42,18 @@ export class UploadFileService {
 
 	async getFile(fileId: string): Promise<GetFileResponse | null> {
 		return this.info.get(fileId).then(fileInfo => fileInfo !== null ? GetFileResponseFromDomain(fileInfo) : null);
+	}
+
+	async downloadFile(fileId: string): Promise<DownloadFileResponse | null> {
+		return this.info.get(fileId).then(fileInfo => {
+			if (fileInfo !== null) {
+				return this.fileRep.loadObject(fileInfo.filebucket, fileInfo.filekey)
+				.then(fileBuffer => DownloadFileResponseFromDomain(fileInfo, fileBuffer))
+				.catch(err => {throw new Error(`Failed to load file with ID ${fileId}`)});
+			}
+
+			return null;
+		});
 	}
 }
 
