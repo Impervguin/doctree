@@ -3,8 +3,8 @@ import { Logger } from "@nestjs/common";
 import { Worker, MessageChannel, MessagePort } from 'worker_threads';
 import { FileQueueRepo } from "../infra/queue.repo";
 import { join } from "path";
-import { ParseFileResponse } from "../../text-parser/services/responses/parse.response";
-import { ParseService } from "../../text-parser/services/parse.service";
+import { ParsedFileRepo } from "../infra/parsedfile.repo";
+import { ParsingJobResponse } from "./workers/parsing.response";
 
 
 @Injectable()
@@ -15,6 +15,7 @@ export class ParsingJobManager {
 
     constructor(
         private readonly queueRepo: FileQueueRepo,
+        private readonly parsedFileRepo: ParsedFileRepo,
     ) {}
 
     async onModuleInit(): Promise<void> {
@@ -50,16 +51,23 @@ export class ParsingJobManager {
 
     private async initQueue(): Promise<void> {
         await this.queueRepo.worker(async (fileId) => {
-            const resp = await new Promise<ParseFileResponse>((resolve, reject) => {
+            const resp = await new Promise<ParsingJobResponse>((resolve, reject) => {
                 this.workerPort?.postMessage({fileId: fileId});
                 this.workerPort?.once('message', (msg) => {
                     resolve(msg);
                 });
-                this.workerPort?.once('error', (err) => {
-                    reject(err);
-                });
             });
-            console.log(resp);
+
+            switch (resp.status) {
+                case 'success':
+                    await this.parsedFileRepo.save(resp.response!).catch(
+                        (err) => this.logger.error(`Failed to save parsed file ${resp.fileId}: ${err}`)
+                    );
+                    break;
+                case 'error':
+                    this.logger.error(`Failed job to parse file ${resp.fileId}: ${resp.error}`);
+                    break;
+            }
         });
     }
 

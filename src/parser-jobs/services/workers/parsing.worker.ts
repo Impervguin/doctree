@@ -13,7 +13,6 @@ class ParserWorker {
 
             this.port.onmessage = (msg) => {
                 const parseReq: ParseFileRequest = msg.data;
-                console.log(`Worker got ${parseReq.fileId}`);
                 this.service.parseFile(parseReq).then((resp) => {
                     this.port.postMessage({
                         status: 'success',

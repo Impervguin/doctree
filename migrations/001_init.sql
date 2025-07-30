@@ -94,6 +94,20 @@ CREATE TABLE IF NOT EXISTS documents_files (
     CONSTRAINT created_at_before CHECK (created_at <= updated_at)
 );
 
+CREATE TABLE IF NOT EXISTS parsed_files (
+    file_id UUID PRIMARY KEY,
+    text TEXT NOT NULL,
+    parsed_percentage FLOAT,
+    parsed_comment TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ,
+
+    CONSTRAINT fk_parsed_files_file_id FOREIGN KEY (file_id) REFERENCES files (id),
+    CONSTRAINT created_at_before CHECK (created_at <= updated_at)
+);
+
+
 -- +goose StatementEnd
 
 -- +goose Down

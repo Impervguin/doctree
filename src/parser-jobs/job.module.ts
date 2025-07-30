@@ -4,11 +4,14 @@ import { DatabaseStringService } from "src/database/db/database.string";
 import { ParsingController } from "./api/jobs.controller";
 import { FileQueueRepo } from "./infra/queue.repo";
 import { ParsingJobManager } from "./services/job.manager";
+import { ParsedFileRepo } from "./infra/parsedfile.repo";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { ParsedFileEntity } from "./infra/parsedfile.entity";
 
 
 
 @Module({
-    imports: [DatabaseModule],
+    imports: [DatabaseModule, TypeOrmModule.forFeature([ParsedFileEntity])],
     providers: [{
         provide: 'PG_BOSS',
         useFactory: async (strService : DatabaseStringService) => {
@@ -24,6 +27,7 @@ import { ParsingJobManager } from "./services/job.manager";
     },
     ParsingJobManager,
     FileQueueRepo,
+    ParsedFileRepo,
     ],
     controllers: [ParsingController],
 })
