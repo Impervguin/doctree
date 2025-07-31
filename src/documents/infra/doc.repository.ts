@@ -1,6 +1,6 @@
 import { DataSource, IsNull } from "typeorm";
 import { Document } from "../domain/doc.model";
-import { DocumentEntity, DocumentTagEntity } from "./doc.entity";
+import { DocumentEntity, DocumentTagEntity, ParsedFileEntity, DocumentFileEntity } from "./doc.entity";
 import { DocumentMapper } from "./doc.mapper";
 import { Injectable } from "@nestjs/common";
 import { NodeEntity } from "./doc.entity";
@@ -8,6 +8,7 @@ import { DocumentSearchRequest } from "../services/requests/doc.search";
 import { CompositeFilter } from "src/database/filters/composite.filter";
 import { TextFilter } from "src/database/filters/text.filter";
 import { TextOneToManyFilter } from "src/database/filters/text.otm.filter";
+import { TextManyToManyFilter } from "src/database/filters/text.mtm.filter";
 
 @Injectable()
 export class DocumentRepository {
@@ -99,6 +100,18 @@ export class DocumentRepository {
                     'id',
                     'documentId',
                     DocumentTagEntity
+                )
+            )
+            .addFilter(
+                new TextManyToManyFilter<DocumentEntity, ParsedFileEntity, DocumentFileEntity, DocumentSearchRequest>(
+                    'text',
+                    'text',
+                    'id',
+                    'documentId',
+                    'fileId',
+                    'fileId',
+                    ParsedFileEntity,
+                    DocumentFileEntity
                 )
             );
 

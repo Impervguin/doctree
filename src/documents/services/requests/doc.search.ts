@@ -28,4 +28,13 @@ export class DocumentSearchRequest {
         required: false,
     })
     tag?: string;
+
+    @IsOptional()
+    @IsString()
+    @ApiProperty({
+        example: 'octopuses have 8 tentacles (do not search on rule 64)',
+        description: 'Document text',
+        required: false,
+    })
+    text?: string;
 }
