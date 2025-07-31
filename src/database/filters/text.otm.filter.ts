@@ -2,8 +2,8 @@ import { IFilter } from './filter.interface';
 import { SelectQueryBuilder, ObjectLiteral, EntityTarget } from 'typeorm';
 
 export class TextOneToManyFilter<
-	T extends ObjectLiteral,
-	R extends ObjectLiteral,
+	T extends ObjectLiteral, // root entity
+	R extends ObjectLiteral, // relation entity
 	DTO extends Record<string, any>
 > implements IFilter<T> {
 	private searchTerm?: string;
