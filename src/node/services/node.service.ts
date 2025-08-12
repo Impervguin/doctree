@@ -4,7 +4,7 @@ import { Node } from '../domain/node.model';
 import { GetAllNodeResponseDto, GetNodeResponseDto } from './responses/get.response';
 // import { IsUUID } from 'class-validator';
 import { UpdateNodeTitleRequest } from './requests/update.request';
-import { NodeNotFoundError, ConflictException } from './errors/errors'
+import { NotFoundError, ConflictException } from '../../errors/errors'
 import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
@@ -27,7 +27,7 @@ export class NodeService {
   async getNode(nodeId: string): Promise<GetNodeResponseDto> {
     const node = await this.nodeRepository.getNode(nodeId);
     if (node === null) {
-      throw new NodeNotFoundError('Node not found');
+      throw new NotFoundError('Node not found');
     }
     return node;
   }
@@ -74,7 +74,7 @@ export class NodeService {
 
       const parentNode = await this.nodeRepository.getNode(currentParentId);
       if (!parentNode) {
-        throw new NodeNotFoundError('Parent node not found');
+        throw new NotFoundError('Parent node not found');
       }
       currentParentId = parentNode.parentId;
     }

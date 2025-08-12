@@ -3,7 +3,7 @@ import { NodeEntity } from './node.entity';
 import { Injectable } from '@nestjs/common';
 import { Node } from '../domain/node.model';
 import { NodeMapper } from './node.mapper';
-import { NodeNotFoundError } from '../services/errors/errors';
+import { NotFoundError } from '../../errors/errors';
 
 
 @Injectable()
@@ -28,7 +28,7 @@ export class NodeRepository {
       .update({ id: nodeId }, { title: title });
     
     if (result.affected === 0) {
-      throw new NodeNotFoundError(`Node with ID ${nodeId} not found`);
+      throw new NotFoundError(`Node with ID ${nodeId} not found`);
     }
   }
 }

@@ -3,6 +3,7 @@ import { DataSource } from "typeorm";
 import { TreeEntity } from "./tree.entity";
 import { Tree } from "../domain/tree.model";
 import { TreeMapper } from "./tree.mapper";
+import { NotFoundError } from "src/errors/errors";
 
 
 @Injectable()
@@ -16,7 +17,7 @@ export class TreeRepository {
         let treeRep = this.dataSource.getTreeRepository(TreeEntity);
         let node = await treeRep.findOneBy({ id: id });
         if (!node) {
-            throw new Error('Node not found');
+            throw new NotFoundError('Node not found');
         }
         return treeRep.findDescendantsTree(node).then(tree => 
             TreeMapper.toDomain(tree)
@@ -41,7 +42,7 @@ export class TreeRepository {
             .getOne();
 
         if (root == null) {
-            throw new Error('Node not found');
+            throw new NotFoundError('Node not found');
         }
 
         let treeRep = this.dataSource.getTreeRepository(TreeEntity);
@@ -54,6 +55,9 @@ export class TreeRepository {
         let treeEntity = TreeMapper.toEntity(node);
         if (parentId !== null) {
             treeEntity.parent = await treeRep.findOneBy({ id: parentId });
+            if (treeEntity.parent == null) {
+                throw new NotFoundError('Parent node not found');
+            }
         } else {
             treeEntity.parent = null;
         }
@@ -97,7 +101,7 @@ export class TreeRepository {
         }). then(
             node => {
                 if (node === null) {
-                    throw new Error('Node not found');
+                    throw new NotFoundError('Node not found');
                 }
                 return node.parent === null;
             },

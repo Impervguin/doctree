@@ -1,6 +1,6 @@
 import { HttpException } from '@nestjs/common';
 
-export class NodeNotFoundError extends HttpException {
+export class NotFoundError extends HttpException {
   constructor(message: string) {
     super(message, 404);
   }
