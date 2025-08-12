@@ -1,11 +1,13 @@
-class NodeNotFoundError extends Error {
+import { HttpException } from '@nestjs/common';
+
+export class NodeNotFoundError extends HttpException {
   constructor(message: string) {
-    super(message);
+    super(message, 404);
   }
 }
 
-class ConflictException extends Error {
+export class ConflictException extends HttpException {
   constructor(message: string) {
-    super(message);
+    super(message, 409);
   }
 }
