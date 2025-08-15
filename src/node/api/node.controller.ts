@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UsePipes, ValidationPipe, Param, Put } from '@nestjs/common';
+import { Controller, Get, ParseUUIDPipe, Body, UsePipes, ValidationPipe, Param, Put } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiBody, ApiConsumes, ApiParam } from '@nestjs/swagger';
 import { NodeService } from '../services/node.service';
 import { GetAllNodeResponseDto, GetNodeResponseDto } from '../services/responses/get.response';
@@ -22,7 +22,7 @@ export class NodeController {
   @ApiResponse({ status: 404, description: 'Node not found' })
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiParam({ name: 'id', type: String, description: 'Node id' })
-  async getNode(@Param('id') nodeId: string): Promise<GetNodeResponseDto> {
+  async getNode(@Param('id', new ParseUUIDPipe({ version: '4' })) nodeId: string): Promise<GetNodeResponseDto> {
     return await this.nodeService.getNode(nodeId);
   }
 

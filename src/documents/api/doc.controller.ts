@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, Query, UseGuards, UsePipes, ValidationPipe, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete, Query, UseGuards, UsePipes, ValidationPipe, UploadedFile, UseInterceptors, ParseUUIDPipe } from '@nestjs/common';
 import { DocumentService } from '../services/doc.service';
 import { DocumentCreateRequest } from '../services/requests/doc.create';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -37,7 +37,7 @@ export class DocumentController {
     @ApiResponse({ status: 404, description: 'Document not found (WIP)' })
     @ApiResponse({ status: 400, description: 'Bad request (WIP)' })
     @ApiParam({ name: 'id', type: String, description: 'Document id' })
-    async getDocument(@Param('id') docId: string) {
+    async getDocument(@Param('id', new ParseUUIDPipe({ version: '4' })) docId: string) {
         return this.documentService.getDocument(docId);
     }
 
@@ -47,7 +47,7 @@ export class DocumentController {
     @ApiResponse({ status: 404, description: 'Node not found (WIP)' })
     @ApiResponse({ status: 400, description: 'Bad request (WIP)' })
     @ApiParam({ name: 'id', type: String, description: 'Node id' })
-    async getNodeWithDocuments(@Param('id') nodeId: string) {
+    async getNodeWithDocuments(@Param('id', new ParseUUIDPipe({ version: '4' })) nodeId: string) {
         return this.documentService.getNodeWithDocuments(nodeId);
     }
 
@@ -73,7 +73,7 @@ export class DocumentController {
             required: ['file']
         }
     })
-    async linkFile(@Param('id') docId: string, @UploadedFile(FileValidationPipe) file: Express.Multer.File) {
+    async linkFile(@Param('id', new ParseUUIDPipe({ version: '4' })) docId: string, @UploadedFile(FileValidationPipe) file: Express.Multer.File) {
         await this.documentService.linkFile({
             documentId: docId,
             file: {
@@ -125,7 +125,7 @@ export class DocumentController {
     @ApiResponse({ status: 400, description: 'Bad request' })
     @ApiParam({ name: 'id', type: String, description: 'Document id' })
     @ApiBody({ type: DocumentUpdateRequest })
-    async updateDocument(@Param('id') docId: string, @Body() req: DocumentUpdateRequest) {
+    async updateDocument(@Param('id', new ParseUUIDPipe({ version: '4' })) docId: string, @Body() req: DocumentUpdateRequest) {
         await this.documentService.updateDocument(docId, req);
     }
 
@@ -136,7 +136,7 @@ export class DocumentController {
     @ApiResponse({ status: 404, description: 'Document not found (WIP)' })
     @ApiResponse({ status: 400, description: 'Bad request (WIP)' })
     @ApiParam({ name: 'id', type: String, description: 'Document id' })
-    async deleteDocument(@Param('id') docId: string) {
+    async deleteDocument(@Param('id', new ParseUUIDPipe({ version: '4' })) docId: string) {
         await this.documentService.deleteDocument(docId);
     }
 

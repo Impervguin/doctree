@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { DatabaseStringService } from './db/database.string';
 
 @Module({
   imports: [
@@ -24,7 +25,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       }),
       inject: [ConfigService],
     }),
+    ConfigModule,
   ],
-  exports: [TypeOrmModule],
+  providers: [DatabaseStringService],
+  exports: [TypeOrmModule, DatabaseStringService],
 })
 export class DatabaseModule {}

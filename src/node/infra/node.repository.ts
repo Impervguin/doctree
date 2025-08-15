@@ -3,6 +3,7 @@ import { NodeEntity } from './node.entity';
 import { Injectable } from '@nestjs/common';
 import { Node } from '../domain/node.model';
 import { NodeMapper } from './node.mapper';
+import { NotFoundError } from '../../errors/errors';
 
 
 @Injectable()
@@ -23,6 +24,11 @@ export class NodeRepository {
   }
 
   async updateNodeTitle(nodeId: string, title: string): Promise<void> {
-    await this.dataSource.getRepository(NodeEntity).update({ id: nodeId }, { title: title });
+    const result = await this.dataSource.getRepository(NodeEntity)
+      .update({ id: nodeId }, { title: title });
+    
+    if (result.affected === 0) {
+      throw new NotFoundError(`Node with ID ${nodeId} not found`);
+    }
   }
 }

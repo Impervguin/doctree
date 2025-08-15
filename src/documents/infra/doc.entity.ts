@@ -1,4 +1,4 @@
-import { Entity, OneToMany, Column, ManyToOne, ManyToMany, JoinTable, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, PrimaryColumn, PrimaryGeneratedColumn, JoinColumn } from "typeorm";
+import { Entity, OneToMany, Column, ManyToOne, OneToOne, ManyToMany, JoinTable, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, PrimaryColumn, PrimaryGeneratedColumn, JoinColumn } from "typeorm";
 import { BaseEntity } from "../../database/base/base.entity";
 import { DocumentRelationType } from "../domain/doc.model";
 
@@ -75,6 +75,28 @@ export class DocumentFileEntity {
 
     @DeleteDateColumn({name: 'deleted_at'})
     deletedAt?: Date | null;
+}
+
+@Entity('parsed_files')
+export class ParsedFileEntity {
+    @OneToOne(() => DocumentFileEntity)
+    @JoinColumn({ name: 'file_id', referencedColumnName: 'fileId' })
+    documentFile: DocumentFileEntity;
+    
+    @PrimaryColumn({ name: 'file_id' })
+    fileId: string;
+
+    @Column({ name: 'text' })
+    text: string;
+
+    @CreateDateColumn({name: 'created_at'})
+    createdAt: Date;
+
+    @UpdateDateColumn({name: 'updated_at'})
+    updatedAt: Date;
+
+    @DeleteDateColumn({name: 'deleted_at'})
+    deletedAt: Date | null;
 }
 
 @Entity('documents_nodes')

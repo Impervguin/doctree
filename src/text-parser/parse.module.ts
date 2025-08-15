@@ -4,9 +4,11 @@ import { ParseService } from './services/parse.service';
 import { ParseController } from './api/parse.controller';
 import { FileModule } from 'src/file/file.module';
 
+
 @Module({
-    controllers: [ParseController],
+    // controllers: [ParseController],
+    imports: [ParsersModule.forRoot(), FileModule],
     providers: [ParseService],
-    imports: [ParsersModule.forRoot(), FileModule]
+    exports: [ParseService],
 })
 export class ParseModule {}
