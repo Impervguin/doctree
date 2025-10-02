@@ -107,6 +107,42 @@ CREATE TABLE IF NOT EXISTS parsed_files (
     CONSTRAINT created_at_before CHECK (created_at <= updated_at)
 );
 
+CREATE TABLE IF NOT EXISTS app_user (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    username TEXT NOT NULL,
+    email TEXT NOT NULL,
+    hash_password TEXT NOT NULL,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ,
+
+    CONSTRAINT created_at_before CHECK (created_at <= updated_at),
+    CONSTRAINT email_unique UNIQUE (email)
+);
+
+CREATE TABLE IF NOT EXISTS app_admin (
+    id UUID PRIMARY KEY,
+
+    grant_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    revoke_at TIMESTAMPTZ,
+
+    CONSTRAINT revoke_at_before CHECK (revoke_at <= grant_at OR revoke_at IS NULL),
+    CONSTRAINT id_user_fk FOREIGN KEY (id) REFERENCES app_user (id)
+);
+
+CREATE TABLE IF NOT EXISTS parse_schedulers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    username TEXT NOT NULL,
+    hash_password TEXT NOT NULL,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ,
+
+    CONSTRAINT created_at_before CHECK (created_at <= updated_at),
+    CONSTRAINT name_unique UNIQUE (username)
+);
 
 -- +goose StatementEnd
 
