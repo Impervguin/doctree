@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.31.0">
+  <bpmn:collaboration id="Collaboration_1789h11">
+    <bpmn:participant id="Participant_1d12at8" name="Пользоатель" processRef="PublishRegulatoryDocument" />
+    <bpmn:participant id="Participant_04e5kdg" name="Система иерархического хранения документов" />
+    <bpmn:participant id="Participant_15m3kk2" name="Внешняя система" />
+    <bpmn:participant id="Participant_1rxdofj" name="Ответсвенный за документы" />
+    <bpmn:messageFlow id="Flow_0bbz4kp" sourceRef="Participant_1rxdofj" targetRef="Activity_GetApproval" />
+    <bpmn:messageFlow id="Flow_163uaxu" sourceRef="Activity_IndexDocument" targetRef="Participant_04e5kdg" />
+    <bpmn:messageFlow id="Flow_11tf711" sourceRef="Activity_NotifySubscribers" targetRef="Participant_15m3kk2" />
+    <bpmn:messageFlow id="Flow_0dua607" sourceRef="Participant_04e5kdg" targetRef="Activity_CreateDocumentInSystem" />
+    <bpmn:messageFlow id="Flow_0zws6bw" sourceRef="Participant_04e5kdg" targetRef="Activity_ManualCategorization" />
+  </bpmn:collaboration>
+  <bpmn:process id="PublishRegulatoryDocument" name="Публикация нормативного документа" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_1" name="Подписан новый документ ректором">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Activity_PrepareDocument" name="Подготовить документ к публикации">
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_ApprovalRequired" name="Документ требует согласования?">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_ApprovalResult" name="Документ допущен?">
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Activity_CreateDocumentInSystem" name="Создать документ в системе" camunda:class="YourDocumentSystem">
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_0lzqtpp</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:parallelGateway id="Gateway_ParallelStart">
+      <bpmn:incoming>Flow_11</bpmn:incoming>
+      <bpmn:outgoing>Flow_13</bpmn:outgoing>
+      <bpmn:outgoing>Flow_14</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:serviceTask id="Activity_IndexDocument" name="Индексация документа" camunda:class="YourParsingSystem">
+      <bpmn:incoming>Flow_13</bpmn:incoming>
+      <bpmn:outgoing>Flow_15</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Activity_NotifySubscribers" name="Уведомить ответственных">
+      <bpmn:incoming>Flow_14</bpmn:incoming>
+      <bpmn:outgoing>Flow_16</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="Event_Published" name="Документ опубликован">
+      <bpmn:incoming>Flow_0y63wzr</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="Activity_GetApproval" name="Согласование документа">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:parallelGateway id="Gateway_ParallelJoin">
+      <bpmn:incoming>Flow_15</bpmn:incoming>
+      <bpmn:incoming>Flow_16</bpmn:incoming>
+      <bpmn:outgoing>Flow_0y63wzr</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:endEvent id="Event_Rejected" name="Документ отклонен">
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Activity_PrepareDocument" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Activity_PrepareDocument" targetRef="Gateway_ApprovalRequired" />
+    <bpmn:sequenceFlow id="Flow_3" name="Да" sourceRef="Gateway_ApprovalRequired" targetRef="Activity_GetApproval">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">Требуется согласование</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_4" name="Нет" sourceRef="Gateway_ApprovalRequired" targetRef="Gateway_ApprovalResult" />
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Activity_GetApproval" targetRef="Gateway_ApprovalResult" />
+    <bpmn:sequenceFlow id="Flow_6" name="Да" sourceRef="Gateway_ApprovalResult" targetRef="Activity_CreateDocumentInSystem" />
+    <bpmn:sequenceFlow id="Flow_7" name="Нет" sourceRef="Gateway_ApprovalResult" targetRef="Event_Rejected" />
+    <bpmn:sequenceFlow id="Flow_11" sourceRef="Activity_ManualCategorization" targetRef="Gateway_ParallelStart" />
+    <bpmn:sequenceFlow id="Flow_13" sourceRef="Gateway_ParallelStart" targetRef="Activity_IndexDocument" />
+    <bpmn:sequenceFlow id="Flow_14" sourceRef="Gateway_ParallelStart" targetRef="Activity_NotifySubscribers" />
+    <bpmn:sequenceFlow id="Flow_15" sourceRef="Activity_IndexDocument" targetRef="Gateway_ParallelJoin" />
+    <bpmn:sequenceFlow id="Flow_16" sourceRef="Activity_NotifySubscribers" targetRef="Gateway_ParallelJoin" />
+    <bpmn:sequenceFlow id="Flow_0y63wzr" sourceRef="Gateway_ParallelJoin" targetRef="Event_Published" />
+    <bpmn:sequenceFlow id="Flow_0lzqtpp" sourceRef="Activity_CreateDocumentInSystem" targetRef="Activity_ManualCategorization" />
+    <bpmn:userTask id="Activity_ManualCategorization" name="Добавление документа в иерархии">
+      <bpmn:incoming>Flow_0lzqtpp</bpmn:incoming>
+      <bpmn:outgoing>Flow_11</bpmn:outgoing>
+    </bpmn:userTask>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1789h11">
+      <bpmndi:BPMNShape id="Participant_1d12at8_di" bpmnElement="Participant_1d12at8" isHorizontal="true">
+        <dc:Bounds x="120" y="169" width="1450" height="281" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_1" bpmnElement="StartEvent_1">
+        <dc:Bounds x="173" y="272" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="157" y="315" width="86" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_PrepareDocument_di" bpmnElement="Activity_PrepareDocument">
+        <dc:Bounds x="260" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_ApprovalRequired_di" bpmnElement="Gateway_ApprovalRequired" isMarkerVisible="true">
+        <dc:Bounds x="410" y="265" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="397" y="322" width="76" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_ApprovalResult_di" bpmnElement="Gateway_ApprovalResult" isMarkerVisible="true">
+        <dc:Bounds x="660" y="265" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="614" y="308" width="52" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_CreateDocumentInSystem_di" bpmnElement="Activity_CreateDocumentInSystem">
+        <dc:Bounds x="760" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_ParallelStart_di" bpmnElement="Gateway_ParallelStart">
+        <dc:Bounds x="1160" y="265" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_IndexDocument_di" bpmnElement="Activity_IndexDocument">
+        <dc:Bounds x="1260" y="210" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_NotifySubscribers_di" bpmnElement="Activity_NotifySubscribers">
+        <dc:Bounds x="1260" y="320" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_Published_di" bpmnElement="Event_Published">
+        <dc:Bounds x="1510" y="272" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1495" y="308" width="66" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_GetApproval_di" bpmnElement="Activity_GetApproval">
+        <dc:Bounds x="510" y="190" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_ParallelJoin_di" bpmnElement="Gateway_ParallelJoin">
+        <dc:Bounds x="1405" y="265" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_Rejected_di" bpmnElement="Event_Rejected">
+        <dc:Bounds x="752" y="372" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="746" y="408" width="49" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_ManualCategorization_di" bpmnElement="Activity_ManualCategorization">
+        <dc:Bounds x="950" y="250" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+        <di:waypoint x="209" y="290" />
+        <di:waypoint x="260" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+        <di:waypoint x="360" y="290" />
+        <di:waypoint x="410" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3">
+        <di:waypoint x="435" y="265" />
+        <di:waypoint x="435" y="230" />
+        <di:waypoint x="510" y="230" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="443" y="245" width="14" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4">
+        <di:waypoint x="460" y="290" />
+        <di:waypoint x="660" y="290" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="460" y="303" width="19" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_5_di" bpmnElement="Flow_5">
+        <di:waypoint x="610" y="230" />
+        <di:waypoint x="685" y="230" />
+        <di:waypoint x="685" y="265" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_6_di" bpmnElement="Flow_6">
+        <di:waypoint x="710" y="290" />
+        <di:waypoint x="760" y="290" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="728" y="272" width="14" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_7_di" bpmnElement="Flow_7">
+        <di:waypoint x="685" y="315" />
+        <di:waypoint x="685" y="390" />
+        <di:waypoint x="750" y="390" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="691" y="350" width="19" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11_di" bpmnElement="Flow_11">
+        <di:waypoint x="1050" y="290" />
+        <di:waypoint x="1160" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13_di" bpmnElement="Flow_13">
+        <di:waypoint x="1185" y="265" />
+        <di:waypoint x="1185" y="250" />
+        <di:waypoint x="1260" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_14_di" bpmnElement="Flow_14">
+        <di:waypoint x="1185" y="315" />
+        <di:waypoint x="1185" y="360" />
+        <di:waypoint x="1260" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_15_di" bpmnElement="Flow_15">
+        <di:waypoint x="1360" y="235" />
+        <di:waypoint x="1430" y="235" />
+        <di:waypoint x="1430" y="265" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_16_di" bpmnElement="Flow_16">
+        <di:waypoint x="1360" y="360" />
+        <di:waypoint x="1430" y="360" />
+        <di:waypoint x="1430" y="315" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0y63wzr_di" bpmnElement="Flow_0y63wzr">
+        <di:waypoint x="1455" y="290" />
+        <di:waypoint x="1510" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0lzqtpp_di" bpmnElement="Flow_0lzqtpp">
+        <di:waypoint x="860" y="290" />
+        <di:waypoint x="950" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Participant_04e5kdg_di" bpmnElement="Participant_04e5kdg" isHorizontal="true">
+        <dc:Bounds x="120" y="80" width="1450" height="60" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1csj513" bpmnElement="Participant_15m3kk2" isHorizontal="true">
+        <dc:Bounds x="1180" y="470" width="390" height="60" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0y3uggp" bpmnElement="Participant_1rxdofj" isHorizontal="true">
+        <dc:Bounds x="120" y="460" width="540" height="60" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0bbz4kp_di" bpmnElement="Flow_0bbz4kp">
+        <di:waypoint x="560" y="460" />
+        <di:waypoint x="560" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_163uaxu_di" bpmnElement="Flow_163uaxu">
+        <di:waypoint x="1310" y="210" />
+        <di:waypoint x="1310" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11tf711_di" bpmnElement="Flow_11tf711">
+        <di:waypoint x="1310" y="400" />
+        <di:waypoint x="1310" y="470" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0dua607_di" bpmnElement="Flow_0dua607">
+        <di:waypoint x="810" y="140" />
+        <di:waypoint x="810" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0zws6bw_di" bpmnElement="Flow_0zws6bw">
+        <di:waypoint x="1000" y="140" />
+        <di:waypoint x="1000" y="250" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
