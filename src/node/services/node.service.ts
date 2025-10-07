@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { NodeRepository } from '../infra/node.repository';
+import { NodeRepository } from '../infra/node.interface';
 import { Node } from '../domain/node.model';
 import { GetAllNodeResponseDto, GetNodeResponseDto } from './responses/get.response';
 // import { IsUUID } from 'class-validator';

@@ -3,10 +3,11 @@ import { DataSource } from 'typeorm';
 import { StoredFileInfo } from '../domain/meta.domain';
 import { FileInfo } from './info.entity';
 import { FileInfoMapper } from './info.mapper';
+import { FileInfoRepository } from './info.inteface';
 
 
 @Injectable()
-export class FileInfoRepository {
+export class PostgresFileInfoRepository implements FileInfoRepository {
     constructor(private dataSource: DataSource) {}
 
     async save(fileInfo: StoredFileInfo): Promise<void> {

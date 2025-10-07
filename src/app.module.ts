@@ -9,9 +9,10 @@ import { FileModule } from './file/file.module';
 import { DocumentModule } from './documents/doc.module';
 import { ParseModule } from './text-parser/parse.module';
 import { ParsingJobModule } from './parser-jobs/job.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
-  imports: [DatabaseModule, MinioModule, NodeModule, TreeModule, FileModule, DocumentModule, ParseModule, ParsingJobModule],
+  imports: [DatabaseModule, MinioModule, NodeModule, TreeModule, FileModule, DocumentModule, ParseModule, ParsingJobModule, AuthModule],
   controllers: [AppController],
   providers: [AppService],
 })

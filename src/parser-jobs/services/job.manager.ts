@@ -1,9 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
 import { Worker, MessageChannel, MessagePort } from 'worker_threads';
-import { FileQueueRepo } from "../infra/queue.repo";
+import { FileQueueRepo } from "../infra/queue.interface";
 import { join } from "path";
-import { ParsedFileRepo } from "../infra/parsedfile.repo";
+import { ParsedFileRepo } from "../infra/parsedfile.interface";
 import { ParsingJobResponse } from "./workers/parsing.response";
 
 

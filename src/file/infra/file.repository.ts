@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { MinioClient } from 'src/minio/client/client';
 import { BufferedFile } from '../domain/bufferedfile.domain';
+import { FileRepository } from './file.interface';
 
 @Injectable()
-export class FileRepository {
+export class MinioFileRepository implements FileRepository {
     constructor(private minioClient: MinioClient) {}
 
     async listBuckets(): Promise<string[]> {

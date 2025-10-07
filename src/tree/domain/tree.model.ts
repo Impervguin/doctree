@@ -180,7 +180,21 @@ export class Tree extends BaseModel {
       throw new TreeChildrenUndefinedError();
     }
   }
+
+  // Iterates over every child of this node (not children of children) (not this node)
+  forEachFlat(fn: (child: Tree) => void): void {
+    if (this.children !== undefined) {
+      if (!this.isDeleted()) {
+        for (const child of this.children) {
+          fn(child);
+        }
+      }
+    } else {
+      throw new TreeChildrenUndefinedError();
+    }
+  }
 }
+
 
 export class TreeChildrenUndefinedError extends Error {
   constructor() {

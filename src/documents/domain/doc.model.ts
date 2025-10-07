@@ -8,6 +8,14 @@ export enum DocumentRelationType {
     UsedBy = 'used_by'
 }
 
+export class Node {
+    @IsUUID('4')
+    id: string;
+
+    @IsString()
+    title: string;
+}
+
 export class Document extends BaseModel {
 
     @IsString()
@@ -30,6 +38,10 @@ export class Document extends BaseModel {
 
     @IsArray()
     nodeIds: string[];
+
+    @IsOptional()
+    @IsArray()
+    nodes?: Node[];
 
     @IsOptional()
     @IsArray()
@@ -64,6 +76,19 @@ export class Document extends BaseModel {
                 throw new Error("File not found");
             }
             this.files!.push(fileInfo);
+        }))).then(_ => undefined);
+    }
+
+    fillNodes(nodeFunc: (nodeId: string) => Promise<Node | null>): Promise<void> {
+        if (this.nodes !== undefined) {
+            throw new Error("Nodes already filled");
+        }
+        this.nodes = [];
+        return Promise.all(this.nodeIds.map(nodeId => nodeFunc(nodeId).then(node => {
+            if (node === null) {
+                throw new Error("Node not found");
+            }
+            this.nodes!.push(node);
         }))).then(_ => undefined);
     }
 

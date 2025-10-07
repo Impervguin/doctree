@@ -127,7 +127,6 @@ CREATE TABLE IF NOT EXISTS app_admin (
     grant_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     revoke_at TIMESTAMPTZ,
 
-    CONSTRAINT revoke_at_before CHECK (revoke_at <= grant_at OR revoke_at IS NULL),
     CONSTRAINT id_user_fk FOREIGN KEY (id) REFERENCES app_user (id)
 );
 

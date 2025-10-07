@@ -3,11 +3,12 @@ import { DataSource } from "typeorm";
 import { TreeEntity } from "./tree.entity";
 import { Tree } from "../domain/tree.model";
 import { TreeMapper } from "./tree.mapper";
-import { NotFoundError } from "src/errors/errors";
+import { NodeNotFoundError } from "../services/errors.service";
+import { TreeRepository } from "./tree.interface";
 
 
 @Injectable()
-export class TreeRepository {
+export class PostgresTreeRepository implements TreeRepository {
     constructor(private dataSource: DataSource) {}
     async getAllTrees(): Promise<Tree[]> {
         return this.dataSource.getTreeRepository(TreeEntity).findTrees().then(trees => trees.map(TreeMapper.toDomain));
@@ -17,7 +18,7 @@ export class TreeRepository {
         let treeRep = this.dataSource.getTreeRepository(TreeEntity);
         let node = await treeRep.findOneBy({ id: id });
         if (!node) {
-            throw new NotFoundError('Node not found');
+            throw new NodeNotFoundError('Node not found');
         }
         return treeRep.findDescendantsTree(node).then(tree => 
             TreeMapper.toDomain(tree)
@@ -42,7 +43,7 @@ export class TreeRepository {
             .getOne();
 
         if (root == null) {
-            throw new NotFoundError('Node not found');
+            throw new NodeNotFoundError('Node not found');
         }
 
         let treeRep = this.dataSource.getTreeRepository(TreeEntity);
@@ -56,7 +57,7 @@ export class TreeRepository {
         if (parentId !== null) {
             treeEntity.parent = await treeRep.findOneBy({ id: parentId });
             if (treeEntity.parent == null) {
-                throw new NotFoundError('Parent node not found');
+                throw new NodeNotFoundError('Parent node not found');
             }
         } else {
             treeEntity.parent = null;
@@ -101,7 +102,7 @@ export class TreeRepository {
         }). then(
             node => {
                 if (node === null) {
-                    throw new NotFoundError('Node not found');
+                    throw new NodeNotFoundError('Node not found');
                 }
                 return node.parent === null;
             },

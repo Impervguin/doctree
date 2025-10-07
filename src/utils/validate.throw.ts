@@ -1,3 +1,4 @@
+import { plainToClassFromExist } from 'class-transformer';
 import { validate, ValidationOptions, ValidationError } from 'class-validator';
 
 

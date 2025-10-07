@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { TreeRepository } from '../infra/tree.repository';
+import { TreeRepository } from '../infra/tree.interface';
 import { Tree } from '../domain/tree.model';
 import { CreateNodeRequest, CreateRootRequest } from './requests/create.request';
-import { UpdateNodeParentRequest } from './requests/update.request';
+import { UpdateNodeParentRequest, UpdateNodeRequest } from './requests/update.request';
 import { TreeHasCycleError } from '../domain/tree.model';
 
 
@@ -32,7 +32,7 @@ export class TreeService {
     return this.treeRepository.createNode(node, null);
   }
 
-  async updateNode(req: UpdateNodeParentRequest): Promise<void> {
+  async updateNodeParent(req: UpdateNodeParentRequest): Promise<void> {
     await this.treeRepository.updateNodeAsRoot(req.id, tree => {
       // Need to check for no cycle after changing parent
       // Cycle in tree may appear, if we set node's parent to itself or one of its children
@@ -42,6 +42,22 @@ export class TreeService {
 
       return this.treeRepository.getTreeAsRoot(req.parentId).then(parent => {
         parent.addChild(tree);
+        return parent;
+      });
+    })
+  }
+
+  async updateNode(req: UpdateNodeRequest): Promise<void> {
+    await this.treeRepository.updateNodeAsRoot(req.id, tree => {
+      // Need to check for no cycle after changing parent
+      // Cycle in tree may appear, if we set node's parent to itself or one of its children
+      if (tree.find(child => child.id === req.parentId)) {
+        throw new TreeHasCycleError();
+      }
+
+      return this.treeRepository.getTreeAsRoot(req.parentId).then(parent => {
+        parent.addChild(tree);
+        tree.title = req.title;
         return parent;
       });
     })

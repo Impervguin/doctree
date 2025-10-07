@@ -1,15 +1,14 @@
 import { Inject, Injectable } from "@nestjs/common";
 import PgBoss, { JobWithMetadata } from "pg-boss";
 import { Job } from "pg-boss";
-import { EventEmitter } from "stream";
-
+import { FileQueueRepo } from "./queue.interface";
 
 class FileJob {
     fileId: string;
 }
 
 @Injectable()
-export class FileQueueRepo {
+export class PgBossFileQueueRepo implements FileQueueRepo {
     private readonly queueName = 'parsing-queue';
     private queueReady: Promise<void>;
 

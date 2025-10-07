@@ -9,9 +9,10 @@ import { CompositeFilter } from "src/database/filters/composite.filter";
 import { TextFilter } from "src/database/filters/text.filter";
 import { TextOneToManyFilter } from "src/database/filters/text.otm.filter";
 import { TextManyToManyFilter } from "src/database/filters/text.mtm.filter";
+import { DocumentRepository } from "./interface.repository";
 
 @Injectable()
-export class DocumentRepository {
+export class PostgresDocumentRepository implements DocumentRepository {
     constructor(private dataSource: DataSource) {}
  
     async createDocument(doc: Document): Promise<void> {

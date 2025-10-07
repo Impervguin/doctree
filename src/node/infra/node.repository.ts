@@ -4,10 +4,11 @@ import { Injectable } from '@nestjs/common';
 import { Node } from '../domain/node.model';
 import { NodeMapper } from './node.mapper';
 import { NotFoundError } from '../../errors/errors';
+import { NodeRepository } from './node.interface';
 
 
 @Injectable()
-export class NodeRepository {
+export class PostgresNodeRepository implements NodeRepository {
   constructor(private dataSource: DataSource) {}
 
   async getAllNodes(): Promise<Node[]> {

@@ -1,10 +1,11 @@
 import { Controller, Get, Param, UsePipes, ValidationPipe, Post, Body, Put, BadRequestException, Delete, ParseUUIDPipe } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiBody, ApiConsumes, ApiParam } from '@nestjs/swagger';
 import { TreeService } from '../services/tree.service';
-import { GetAllTreesResponseDto, GetRootTreeResponseDto, GetSubTreeResponseDto } from '../services/responses/get.response';
+import { GetAllTreesResponseDto, GetRootTreeResponseDto, GetSubTreeResponseDto } from './dto/get.response';
 import { CreateNodeRequest, CreateRootRequest } from '../services/requests/create.request';
 import { UpdateNodeParentRequest } from '../services/requests/update.request';
 import { TreeHasCycleError } from '../domain/tree.model';
+import { TreeMapper } from './dto/get.mapper';
 
 
 @Controller('trees')
@@ -19,7 +20,8 @@ export class TreeController {
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiParam({ name: 'id', type: String, description: 'Node id' })
   async getSubTree(@Param('id', new ParseUUIDPipe({ version: '4' })) id : string) : Promise<GetSubTreeResponseDto> {
-    return await this.treeService.getSubTree(id);
+    const tree = await this.treeService.getSubTree(id);
+    return {tree: TreeMapper.toDto(tree)};
   }
 
   @Get('root/:id')
@@ -30,14 +32,16 @@ export class TreeController {
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiParam({ name: 'id', type: String, description: 'Node id' })
   async getRootTree(@Param('id', new ParseUUIDPipe({ version: '4' })) id : string) : Promise<GetRootTreeResponseDto> {
-    return await this.treeService.getRootTree(id);
+    const tree = await this.treeService.getRootTree(id);
+    return {tree: TreeMapper.toDto(tree)};
   }
 
   @Get()
   @ApiOperation({ summary: 'Get all trees' })
   @ApiResponse({ status: 200, description: 'Trees found' })
   async getAllTrees(): Promise<GetAllTreesResponseDto> {
-    return await this.treeService.getAllTrees();
+    const trees = await this.treeService.getAllTrees();
+    return {trees: trees.map(tree => TreeMapper.toDto(tree))};
   }
 
   @Post('node')
@@ -69,7 +73,7 @@ export class TreeController {
   @ApiBody({ type: UpdateNodeParentRequest })
   async updateNode(@Body() req : UpdateNodeParentRequest) {
     try {
-      await this.treeService.updateNode(req);
+      await this.treeService.updateNodeParent(req);
     } catch (e) {
       if (e instanceof TreeHasCycleError) {
         throw new BadRequestException(e);

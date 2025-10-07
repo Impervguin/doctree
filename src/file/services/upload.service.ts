@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { FileInfoRepository } from "../infra/info.repository";
-import { FileRepository } from "../infra/file.repository";
+import { FileInfoRepository } from "../infra/info.inteface";
+import { FileRepository } from "../infra/file.interface";
 import { ConfigService } from '@nestjs/config';
 import { StoredFileInfo } from "../domain/meta.domain";
 import { Logger } from '@nestjs/common';

@@ -77,7 +77,44 @@ components:
           items:
             $ref: "#/components/schemas/DocumentNode"
       required: [id, title]
-
+    
+    DocumentWithNodes:
+      type: object
+      properties:
+        nodeTitle:
+          type: string
+          format: uuid
+        documents:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              title:
+                type: string
+              description:
+                type: string
+              tags:
+                type: array
+                items:
+                  type: string
+              files:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GetFile"
+      required: [id, title]
+    
+    CreateNodeRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        parentId:
+          type: string
+          format: uuid
+    
     UpdateNodeRequest:
       type: object
       properties:
@@ -204,11 +241,7 @@ paths:
       responses:
         "200":
           description: Успешный вход
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuthResponse"
-        "401":
+        "400":
           description: Неверный логин или пароль
   
   /auth/logout:
@@ -234,6 +267,8 @@ paths:
       responses:
         "201":
           description: Пользователь создан
+        "403":
+          description: У пользователя нет прав администратора
         "400":
           description: Ошибка запроса
   
@@ -251,29 +286,10 @@ paths:
       responses:
         "201":
           description: Планировщик создан
+        "403":
+          description: У пользователя нет прав администратора
         "400":
           description: Ошибка запроса
-
-  /auth/refresh:
-    post:
-      tags: [Auth]
-      summary: Обновление JWT-токена
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                refreshToken:
-                  type: string
-      responses:
-        "200":
-          description: Новый токен
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuthResponse"
 
   /trees/nodes:
       get:
@@ -285,9 +301,31 @@ paths:
             content:
               application/json:
                 schema:
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/TreeNode"
+                  type: object
+                  properties:
+                    nodes:
+                      type: array
+                      items:
+                        $ref: "#/components/schemas/TreeNode"
+          "403":
+            description: У пользователя нет прав
+      post:
+        tags: [Tree]
+        summary: Создание узла дерева
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateNodeRequest"
+        responses:
+          "201":
+            description: Узел создан
+          "403":
+            description: У пользователя нет прав администратора
+          "400": 
+            description: Некорректный запрос
+        
   /trees/nodes/{id}:
     get:
       tags: [Tree]
@@ -305,7 +343,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TreeNode"
+                type: object
+                properties:
+                  node:
+                    $ref: "#/components/schemas/TreeNode"
+        "403":
+            description: У пользователя нет прав
         "404":
           description: Узел не найден
     patch:
@@ -329,6 +372,8 @@ paths:
           description: Узел обновлен
         "400":
           description: Неправильный запрос
+        "403":
+          description: У пользователя нет прав администратора
         "404":
           description: Не найден узел
     delete:
@@ -346,9 +391,11 @@ paths:
           description: Узел удален
         "400":
           description: Неправильный запрос
+        "403":
+          description: У пользователя нет прав администратора
         "404":
           description: Не найден узел
-  /trees:
+  /trees/root:
     get:
       tags: [Tree]
       summary: Получить все деревья
@@ -358,11 +405,14 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Tree"
-      
-  /trees/root:
+                type: object
+                properties:
+                  trees:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Tree"
+        "403":
+            description: У пользователя нет прав
     post:
       tags: [Tree]
       summary: Создать корень дерева
@@ -379,13 +429,15 @@ paths:
       responses:
         "201":
           description: Корень создан
+        "403":
+          description: У пользователя нет прав администратора
         "400":
           description: Некорректные данные
 
   /trees/root/{id}:
     get:
       tags: [Tree]
-      summary: Получить дерево по корню
+      summary: Получить целое дерево по узлу внутри
       parameters:
         - in: path
           name: id
@@ -397,13 +449,14 @@ paths:
         "200":
           description: Дерево найдено
           content:
-              application/json:
-                schema:
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/Tree"
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tree:
+                      $ref: "#/components/schemas/Tree"
         "400":
-          description: Некорректный запрос или узел не является корневым
+          description: Некорректный запрос
         "404": 
           description: Узел не найден
     delete:
@@ -421,6 +474,8 @@ paths:
           description: Дерево удалено
         "400":
           description: Некорректный запрос или узел не является корневым
+        "403":
+          description: У пользователя нет прав администратора
         "404":
           description: Узел не найден
 
@@ -439,17 +494,20 @@ paths:
         "200":
           description: Поддерево найдено
           content:
-              application/json:
-                schema:
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/Tree"
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tree:
+                      $ref: "#/components/schemas/Tree"
         "400":
           description: Некорректный запрос
+        "403":
+            description: У пользователя нет прав
         "404": 
           description: Узел не найден
 
-  /documents:
+  /docs:
     post:
       tags: [Document]
       summary: Создать документ
@@ -462,6 +520,8 @@ paths:
       responses:
         "201":
           description: Документ создан
+        "403":
+            description: У пользователя нет прав
         "400":
           description: Некорректный запрос
         
@@ -491,11 +551,18 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Document"
+                type: object
+                properties:
+                  docs:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Document"
+        "400":
+          description: Некорректный запрос
+        "403":
+            description: У пользователя нет прав
 
-  /documents/{id}:
+  /docs/{id}:
     get:
       tags: [Document]
       summary: Получить документ по id
@@ -512,11 +579,15 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Document"
+                type: object
+                properties:
+                  doc:
+                    $ref: "#/components/schemas/Document"
         "400":
           description: Некорректный запрос
+        
+        "403":
+            description: У пользователя нет прав
         
         "404":
           description: Документ не найден
@@ -542,6 +613,8 @@ paths:
           description: Документ обновлен
         "400":
           description: Некорректный запрос
+        "403":
+            description: У пользователя нет прав
         "404":
           description: Документ не найден
     delete:
@@ -559,10 +632,12 @@ paths:
           description: Документ удален
         "400":
           description: Некорректный запрос
+        "403":
+            description: У пользователя нет прав
         "404":
           description: Документ не найден
   
-  /documents/nodes/{nodeId}:
+  /docs/nodes/{nodeId}:
     get:
       tags: [Document]
       summary: Получить все документы, привязанные к узлу
@@ -581,14 +656,16 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Document"
+                  $ref: "#/components/schemas/DocumentWithNodes"
         "400":
           description: Некорректный запрос
+        "403":
+            description: У пользователя нет прав
         "404":
           description: Узел не найден
 
-  /documents/{id}/files:
-    post:
+  /docs/{id}/files:
+    patch:
       tags: [Document]
       summary: Загрузить файл к документу
       parameters:
@@ -614,10 +691,12 @@ paths:
           description: Файл прикреплен
         "400":
           description: Некорректный запрос
+        "403":
+            description: У пользователя нет прав
         "404":
           description: Документ не найден
         
-  /documents/{id}/files/{fileId}:
+  /docs/{id}/files/{fileId}:
     delete:
       tags: [Document]
       summary: Отвязать файл от документа
@@ -639,11 +718,13 @@ paths:
           description: Файл отвязан
         "400":
           description: Некорректный запрос
+        "403":
+            description: У пользователя нет прав
         "404":
           description: Документ или файл не найдены
 
-  /documents/{id}/nodes:
-    post:
+  /docs/{id}/nodes/{nodeId}:
+    patch:
       tags: [Document]
       summary: Привязать документ к узлу
       parameters:
@@ -653,17 +734,12 @@ paths:
           schema:
             type: string
             format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                nodeId:
-                  type: string
-                  format: uuid
-              required: [nodeId]
+        - in: path
+          name: nodeId
+          required: true
+          schema:
+            type: string
+            format: uuid
       responses:
         "200":
           description: Документ отвязан от другого узла иерархии и привязан к заданному
@@ -671,10 +747,10 @@ paths:
           description: Документ привязан к узлу
         "400":
           description: Некорректный запрос
+        "403":
+            description: У пользователя нет прав
         "404":
           description: Документ или узел не найден
-
-  /documents/{id}/nodes/{nodeId}:
     delete:
       tags: [Document]
       summary: Отвязать документ от узла
@@ -696,11 +772,13 @@ paths:
           description: Документ отвязан от узла
         "400":
           description: Некорректный запрос
+        "403":
+            description: У пользователя нет прав
         "404":
           description: Документ или узел не найден
 
-  /documents/{id}/relations:
-    post:
+  /docs/{id}/relations/{relatedId}:
+    patch:
       tags: [Document]
       summary: Связать документ с другим документом
       parameters:
@@ -710,21 +788,21 @@ paths:
           schema:
             type: string
             format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/RelateDocumentsRequest"
+        - in: path
+          name: relatedId
+          required: true
+          schema:
+            type: string
+            format: uuid
       responses:
         "201":
           description: Связь создана
         "400":
           description: Некорректный запрос
+        "403":
+            description: У пользователя нет прав
         "404":
           description: Документ или узлы не найдены
-
-  /documents/{id}/relations/{relatedId}:
     delete:
       tags: [Document]
       summary: Удалить связь между документами
@@ -746,11 +824,13 @@ paths:
           description: Связь удалена
         "400":
           description: Некорректный запрос
+        "403":
+            description: У пользователя нет прав
         "404":
           description: Документ или связь не найдены
 
   /parsing/{fileId}:
-    post:
+    put:
       tags: [Parsing]
       summary: Поставить файл в очередь на парсинг
       parameters:
@@ -765,5 +845,7 @@ paths:
           description: Файл добавлен в очередь
         "400":
           description: Некорректный запрос
+        "403":
+            description: У пользователя нет прав планировщика
         "404":
           description: Файл не найден

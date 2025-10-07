@@ -1,15 +1,13 @@
 import { Injectable } from "@nestjs/common";
-import { DocumentRepository } from "../infra/doc.repository";
+import { DocumentRepository } from "../infra/interface.repository";
 import { DocumentCreateRequest } from "./requests/doc.create";
 import { Document } from "../domain/doc.model";
-import { GetFileResponse } from "src/file/services/responses/get.file";
-import { GetDocumentResponse } from "./responses/doc.get";
 import { UploadFileService } from "src/file/services/upload.service";
 import { TreeService } from "src/tree/services/tree.service";
 import { Tree } from "src/tree/domain/tree.model";
 import { GetFileResponseFromDomain } from "src/file/services/responses/get.file";
 import { ConfigService } from '@nestjs/config';
-import { GetNodeWithDocumentsResponse } from "./responses/node.doc.get";
+import { NodeWithDocumentsResponse } from "./responses/get.node";
 import { AttachDocumentToNodeRequest, DetachDocumentFromNodeRequest,
          DocumentFileLinkRequest, DocumentUnlinkFileRequest,
          RelateDocumentsRequest, UnrelateDocumentsRequest 
@@ -17,7 +15,10 @@ import { AttachDocumentToNodeRequest, DetachDocumentFromNodeRequest,
 import { formatDate } from "src/utils/date";
 import { DocumentUpdateRequest } from "./requests/doc.update";
 import { DocumentSearchRequest } from "./requests/doc.search";
-import { ConflictException, NotFoundError } from "src/errors/errors";
+import { NodeService } from "src/tree/services/node.service";
+import { NodeNotFoundError } from "src/tree/services/errors.service";
+import { DocumentAlreadyAttachedError, DocumentNotAttachedError, DocumentNotFoundError, DocumentNotLinkedError, NoSelfreferenceError } from "./errors.service";
+import { AttachDocumentToNodeResponse } from "./responses/attach.doc";
 
 @Injectable()
 export class DocumentService {
@@ -27,7 +28,8 @@ export class DocumentService {
         private documentRepository: DocumentRepository, 
         private fileService: UploadFileService,
         private configService: ConfigService,
-        private treeService: TreeService
+        private treeService: TreeService,
+        private nodeService: NodeService
     ) {
         this.bucketName = this.configService.getOrThrow('MINIO_BUCKET_NAME');
     }
@@ -37,36 +39,20 @@ export class DocumentService {
         return this.documentRepository.createDocument(doc);
     }
 
-    async getDocument(docId: string): Promise<GetDocumentResponse | null> {
-        return this.documentRepository.getDocument(docId).then(doc => {
-            if (doc === null) {
-                throw new NotFoundError('Document not found');
-            }
-            return doc.fillFiles(fileId => this.fileService.getFileInfo(fileId)).then(
-                _ => {
-                    return {
-                        id: doc.id,
-                        title: doc.title,
-                        description: doc.description,
-                        tags: doc.tags,
-                        files: doc.files!.map(fileInfo => GetFileResponseFromDomain(fileInfo)),
-                        relations: doc.relations.map(relation => {
-                            return {
-                                documentId: relation.documentId,
-                                type: relation.type
-                            }
-                        })
-                    };
-                }
-
-            );
-        });
+    async getDocument(docId: string): Promise<Document> {
+        const doc = await this.documentRepository.getDocument(docId);
+        if (doc === null) {
+            throw new DocumentNotFoundError('Document not found');
+        }
+        doc.fillFiles(fileId => this.fileService.getFileInfo(fileId));
+        doc.fillNodes(nodeId => this.nodeService.getNode(nodeId));
+        return doc;
     }
 
-    async getNodeWithDocuments(nodeId: string): Promise<GetNodeWithDocumentsResponse | null> {
+    async getNodeWithDocuments(nodeId: string): Promise<NodeWithDocumentsResponse> {
         const nodeTitle = await this.documentRepository.getNodeTitle(nodeId);
         if (!nodeTitle) {
-            throw new NotFoundError('Node not found');
+            throw new NodeNotFoundError('Node not found');
         }
 
         const documents = await this.documentRepository.getDocumentsByNodeId(nodeId);
@@ -99,7 +85,7 @@ export class DocumentService {
         const doc = await this.documentRepository.getDocument(req.documentId);
         
         if (!doc) {
-            throw new NotFoundError('Document not found');
+            throw new DocumentNotFoundError('Document not found');
         }
 
         const fileNameWithTimestamp = req.file.filename.replace(
@@ -121,30 +107,33 @@ export class DocumentService {
         await this.documentRepository.updateDocument(doc);
     }
 
-    async attachDocumentToNode(req: AttachDocumentToNodeRequest): Promise<void> {
-        return new Promise<void>( (resolve, reject) => {
+    async attachDocumentToNode(req: AttachDocumentToNodeRequest): Promise<AttachDocumentToNodeResponse> {
+        let result: AttachDocumentToNodeResponse = {moved: false};
+        return new Promise<AttachDocumentToNodeResponse>( (resolve, reject) => {
             this.documentRepository.getDocument(req.documentId).then(
                 doc => {
                     if (doc === null) {
-                        throw new NotFoundError("Document not found");
+                        throw new DocumentNotFoundError("Document not found");
                     }
                     // get the tree to which the document will be attached
                     this.treeService.getRootTree(req.nodeId).then(rootTree => {
+                        
                         // check if the document is already attached to the node
                         let node: Tree | null = rootTree.find(node => doc!.nodeIds.includes(node.id));
                         // if the document is already attached to the node, and we don't want to move it, reject
                         if (node !== null && !req.move) {
-                            reject(new ConflictException("Document already attached to node"));
+                            reject(new DocumentAlreadyAttachedError("Document already attached to node"));
                         }
                         // both attached and not attached, it we want to move it, we need to detach it from the old nodes
                         // for now it must be only attached to one node, but still we do cycle check, just in case
                         while (node !== null) {
                             doc?.detachFromNode(node.id);
                             node = rootTree.find(node => doc!.nodeIds.includes(node.id));
+                            result.moved = true;
                         }
                         // attach the document to the node
                         doc?.attachToNode(req.nodeId);
-                        this.documentRepository.updateDocument(doc!).then(resolve).catch(reject);
+                        this.documentRepository.updateDocument(doc!).then(() => resolve(result)).catch(reject);
                     }).catch(reject);
                 }).catch(reject);
         });
@@ -155,10 +144,10 @@ export class DocumentService {
             this.documentRepository.getDocument(req.documentId).then(
                 doc => {
                     if (doc === null) {
-                        throw new NotFoundError("Document not found");
+                        throw new DocumentNotFoundError("Document not found");
                     }
                     if (!doc!.nodeIds.includes(req.nodeId)) {
-                        reject(new ConflictException("Document not attached to node"));
+                        reject(new DocumentNotAttachedError("Document not attached to node"));
                     }
                     doc!.detachFromNode(req.nodeId);
                     this.documentRepository.updateDocument(doc!).then(resolve).catch(reject);
@@ -171,10 +160,10 @@ export class DocumentService {
             this.documentRepository.getDocument(req.documentId).then(
                 doc => {
                     if (doc === null) {
-                        throw new NotFoundError("Document not found");
+                        throw new DocumentNotFoundError("Document not found");
                     }
                     if (!doc!.fileIds.includes(req.fileId)) {
-                        reject(new ConflictException("File not attached to document"));
+                        reject(new DocumentNotLinkedError("File not attached to document"));
                     }
                     doc!.removeFileId(req.fileId);
                     this.documentRepository.updateDocument(doc!).then(
@@ -190,7 +179,7 @@ export class DocumentService {
     async updateDocument(docId: string, req: DocumentUpdateRequest): Promise<void> {
         return this.documentRepository.getDocument(docId).then(doc => {
             if (doc === null) {
-                throw new NotFoundError("Document not found");
+                throw new DocumentNotFoundError("Document not found");
             }
             
             if (req.title !== undefined) {
@@ -217,15 +206,15 @@ export class DocumentService {
             let doc2Promise = this.documentRepository.getDocument(req.documentId1);
             return Promise.all([doc1Promise, doc2Promise]).then(docs => {
                 if (docs[0] === null) {
-                    throw new NotFoundError("Document not found");
+                    throw new DocumentNotFoundError("Document not found");
                 }
                 if (docs[1] === null) {
-                    throw new NotFoundError("Document not found");
+                    throw new DocumentNotFoundError("Document not found");
                 }
                 let doc0: Document = docs[0]!;
                 let doc1: Document = docs[1]!;
                 if (doc0.id === doc1.id) {
-                    reject(new ConflictException("Can't relate to self"));
+                    reject(new NoSelfreferenceError("Can't relate to self"));
                 }
 
                 doc0.relateTo(doc1, req.relation);
@@ -240,16 +229,13 @@ export class DocumentService {
             let doc1Promise = this.documentRepository.getDocument(req.documentId1);
             return Promise.all([doc0Promise, doc1Promise]).then(docs => {
                 if (docs[0] === null) {
-                    throw new NotFoundError("Document not found");
+                    throw new DocumentNotFoundError("Document not found");
                 }
                 if (docs[1] === null) {
-                    throw new NotFoundError("Document not found");
+                    throw new DocumentNotFoundError("Document not found");
                 }
                 let doc0: Document = docs[0]!;
                 let doc1: Document = docs[1]!;
-                if (doc0.id === doc1.id) {
-                    reject(new ConflictException("Can't relate to self"));
-                }
 
                 doc0.unrelateFrom(doc1, req.relation);
                 this.documentRepository.updateDocument(doc0).then(resolve).catch(reject);
