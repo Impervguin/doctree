@@ -1,0 +1,769 @@
+openapi: 3.1.1
+info:
+  title: Doctree API
+  description: API для иерархической системы хранения документов
+  version: "2.0.0"
+servers:
+  - url: /api/v2
+tags:
+  - name: Tree
+  - name: Document
+  - name: Parsing
+  - name: Auth
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    GetFile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        fileUrl:
+          type: string
+    
+    DocumentRelation:
+      type: object
+      properties:
+        documentId:
+          type: string
+          format: uuid
+        type:
+          type: string
+          
+    DocumentNode:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+      
+    Document:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        files:
+          type: array
+          items:
+            $ref: "#/components/schemas/GetFile"
+        relations:
+          type: array
+          items:
+            $ref: "#/components/schemas/DocumentRelation"
+        nodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/DocumentNode"
+      required: [id, title]
+
+    UpdateNodeRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        parentId:
+          type: string
+          format: uuid
+
+    CreateDocumentRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+      required: [title]
+
+    UpdateDocumentRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+
+    RelateDocumentsRequest:
+      type: object
+      properties:
+        relatedId:
+          type: string
+          format: uuid
+        relation:
+          type: string
+      required: [relatedId, relation]
+
+    AuthRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+      required: [username, password]
+    
+    RegisterRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        email:
+          type: string
+      required: [username, password, email]
+    
+    SchedulerRegisterRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+      required: [username, password]
+      
+
+    AuthResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+    
+    TreeNode:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+      required: [id, title]
+    
+    Tree:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        children:
+          type: array
+          items:
+            $ref: "#/components/schemas/Tree"
+
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Авторизация по логину и паролю
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthRequest"
+      responses:
+        "200":
+          description: Успешный вход
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Неверный логин или пароль
+  
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Авторизация по логину и паролю
+      responses:
+        "200":
+          description: Успешный выход
+        "401":
+          description: Пользователь не аутентифицирован
+          
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Регистрация пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: Пользователь создан
+        "400":
+          description: Ошибка запроса
+  
+  /auth/scheduler:
+    post:
+      security: []   # создание планировщика без авторизации
+      tags: [Auth]
+      summary: Создать планировщик парсера
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SchedulerRegisterRequest"
+      responses:
+        "201":
+          description: Планировщик создан
+        "400":
+          description: Ошибка запроса
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Обновление JWT-токена
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        "200":
+          description: Новый токен
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+
+  /trees/nodes:
+      get:
+        tags: [Tree]
+        summary: Получить все узлы
+        responses:
+          "200":
+            description: Список узлов
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/TreeNode"
+  /trees/nodes/{id}:
+    get:
+      tags: [Tree]
+      summary: Получить узел по id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Найденный узел
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TreeNode"
+        "404":
+          description: Узел не найден
+    patch:
+      tags: [Tree]
+      summary: Обновить узел (название или родитель)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateNodeRequest"
+      responses:
+        "200":
+          description: Узел обновлен
+        "400":
+          description: Неправильный запрос
+        "404":
+          description: Не найден узел
+    delete:
+      tags: [Tree]
+      summary: Удалить узел
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Узел удален
+        "400":
+          description: Неправильный запрос
+        "404":
+          description: Не найден узел
+  /trees:
+    get:
+      tags: [Tree]
+      summary: Получить все деревья
+      responses:
+        "200":
+          description: Список деревьев
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Tree"
+      
+  /trees/root:
+    post:
+      tags: [Tree]
+      summary: Создать корень дерева
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+              required: [title]
+      responses:
+        "201":
+          description: Корень создан
+        "400":
+          description: Некорректные данные
+
+  /trees/root/{id}:
+    get:
+      tags: [Tree]
+      summary: Получить дерево по корню
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Дерево найдено
+          content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/Tree"
+        "400":
+          description: Некорректный запрос или узел не является корневым
+        "404": 
+          description: Узел не найден
+    delete:
+      tags: [Tree]
+      summary: Удалить дерево
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Дерево удалено
+        "400":
+          description: Некорректный запрос или узел не является корневым
+        "404":
+          description: Узел не найден
+
+  /trees/sub/{id}:
+    get:
+      tags: [Tree]
+      summary: Получить поддерево
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Поддерево найдено
+          content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/Tree"
+        "400":
+          description: Некорректный запрос
+        "404": 
+          description: Узел не найден
+
+  /documents:
+    post:
+      tags: [Document]
+      summary: Создать документ
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDocumentRequest"
+      responses:
+        "201":
+          description: Документ создан
+        "400":
+          description: Некорректный запрос
+        
+    get:
+      tags: [Document]
+      summary: Поиск документов
+      parameters:
+        - in: query
+          name: title
+          schema:
+            type: string
+        - in: query
+          name: description
+          schema:
+            type: string
+        - in: query
+          name: tag
+          schema:
+            type: string
+        - in: query
+          name: text
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Найденные документы
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Document"
+
+  /documents/{id}:
+    get:
+      tags: [Document]
+      summary: Получить документ по id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Документ найден
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Document"
+        "400":
+          description: Некорректный запрос
+        
+        "404":
+          description: Документ не найден
+        
+    patch:
+      tags: [Document]
+      summary: Обновить документ
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDocumentRequest"
+      responses:
+        "200":
+          description: Документ обновлен
+        "400":
+          description: Некорректный запрос
+        "404":
+          description: Документ не найден
+    delete:
+      tags: [Document]
+      summary: Удалить документ
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Документ удален
+        "400":
+          description: Некорректный запрос
+        "404":
+          description: Документ не найден
+  
+  /documents/nodes/{nodeId}:
+    get:
+      tags: [Document]
+      summary: Получить все документы, привязанные к узлу
+      parameters:
+        - in: path
+          name: nodeId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Найденные документы
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Document"
+        "400":
+          description: Некорректный запрос
+        "404":
+          description: Узел не найден
+
+  /documents/{id}/files:
+    post:
+      tags: [Document]
+      summary: Загрузить файл к документу
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+              required: [file]
+      responses:
+        "201":
+          description: Файл прикреплен
+        "400":
+          description: Некорректный запрос
+        "404":
+          description: Документ не найден
+        
+  /documents/{id}/files/{fileId}:
+    delete:
+      tags: [Document]
+      summary: Отвязать файл от документа
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: fileId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Файл отвязан
+        "400":
+          description: Некорректный запрос
+        "404":
+          description: Документ или файл не найдены
+
+  /documents/{id}/nodes:
+    post:
+      tags: [Document]
+      summary: Привязать документ к узлу
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nodeId:
+                  type: string
+                  format: uuid
+              required: [nodeId]
+      responses:
+        "200":
+          description: Документ отвязан от другого узла иерархии и привязан к заданному
+        "201":
+          description: Документ привязан к узлу
+        "400":
+          description: Некорректный запрос
+        "404":
+          description: Документ или узел не найден
+
+  /documents/{id}/nodes/{nodeId}:
+    delete:
+      tags: [Document]
+      summary: Отвязать документ от узла
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: nodeId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Документ отвязан от узла
+        "400":
+          description: Некорректный запрос
+        "404":
+          description: Документ или узел не найден
+
+  /documents/{id}/relations:
+    post:
+      tags: [Document]
+      summary: Связать документ с другим документом
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RelateDocumentsRequest"
+      responses:
+        "201":
+          description: Связь создана
+        "400":
+          description: Некорректный запрос
+        "404":
+          description: Документ или узлы не найдены
+
+  /documents/{id}/relations/{relatedId}:
+    delete:
+      tags: [Document]
+      summary: Удалить связь между документами
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: relatedId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Связь удалена
+        "400":
+          description: Некорректный запрос
+        "404":
+          description: Документ или связь не найдены
+
+  /parsing/{fileId}:
+    post:
+      tags: [Parsing]
+      summary: Поставить файл в очередь на парсинг
+      parameters:
+        - in: path
+          name: fileId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "202":
+          description: Файл добавлен в очередь
+        "400":
+          description: Некорректный запрос
+        "404":
+          description: Файл не найден
