@@ -1,0 +1,164 @@
+http:
+  routers:
+    media-router:
+      rule: "PathPrefix(`/media`)"
+      service: minio-media
+      middlewares: ["strip-media"]
+      priority: 800
+
+    app-api-router:
+      rule: "PathPrefix(`/api/v2`) || PathPrefix(`/api/v1`)"
+      service: api
+      priority: 900
+    
+    traefik-api-router:
+      rule: "PathPrefix(`/api`)"
+      service: status-service
+      priority: 800
+      
+    legacy-router:
+      rule: "PathPrefix(`/legacy`)"
+      middlewares:
+        - legacy-redirect
+      service: noop@internal
+      priority: 800
+    
+    readme-router-docs:
+      rule: "PathPrefix(`/documentation`)"
+      middlewares:
+        - strip-docs
+      service: readme-service
+      priority: 800
+    
+    readme-router:
+      rule: "PathPrefix(`/readme`)"
+      service: readme-service
+      priority: 800
+
+    admin-browser-router:
+      rule: "Path(`/admin`) || Path(`/admin/`)"
+      middlewares:
+        - replace-admin
+      service: admin-service
+      priority: 900
+
+    admin-router:
+      rule: "PathPrefix(`/admin`)"
+      middlewares:
+        - strip-admin
+      service: admin-service
+      priority: 800
+    
+    from-admin-router:
+      rule: "HeadersRegexp(`Referer`, `.*/admin.*`)"
+      service: admin-service
+      priority: 901
+
+    management-router:
+      rule: "Path(`/management`)"
+      middlewares:
+        - replace-management
+      service: static-service
+      priority: 900
+
+    index-static-router:
+      rule: "Path(`/`)"
+      middlewares:
+        - replace-index
+      service: static-service
+      priority: 902
+    
+    reserved-router:
+      rule: "PathPrefix(`/reserved`)"
+      middlewares:
+        - strip-reserved
+      service: static-service
+      priority: 800
+    
+    status-router:
+      rule: "PathPrefix(`/status`)"
+      middlewares:
+        - status-to-dashboard
+      service: status-service
+      priority: 800
+    
+    from-status-router:
+      rule: "HeadersRegexp(`Referer`, `.*/status.*`)"
+      service: status-service
+      priority: 901
+
+    static-router:
+      rule: "PathPrefix(`/`)"
+      service: static-service
+      priority: 500
+
+  services:
+    minio-media:
+      loadBalancer:
+        servers:
+          - url: "http://minio:9000"
+    
+    api:
+      loadBalancer:
+        servers:
+          - url: "http://app:3000"
+    
+    readme-service:
+      loadBalancer:
+        servers:
+          - url: "http://readme:8000"
+    
+    static-service:
+      loadBalancer:
+        servers:
+          - url: "http://static:80"
+
+    status-service:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:8080"
+    
+    admin-service:
+      loadBalancer:
+        servers:
+          - url: "http://pgadmin:80"
+    
+    noop:
+
+  middlewares:
+    strip-media:
+      stripPrefix:
+        prefixes: 
+          - "/media"
+    strip-reserved:
+      stripPrefix:
+        prefixes: 
+          - "/reserved"
+    strip-docs:
+      stripPrefix:
+        prefixes: 
+          - "/documentation"
+    strip-admin:
+      stripPrefix:
+        prefixes: 
+          - "/admin"
+    replace-management:
+      replacePath:
+        path: "/management.html"
+    replace-admin:
+      redirectRegex:
+        regex: "^https?://[^/]+/admin/?(.*)"
+        replacement: "https://${1}/admin/browser/${2}"
+        permanent: true
+    legacy-redirect:
+      redirectRegex:
+        regex: "^https?://[^/]+/legacy/?(.*)"
+        replacement: "https://insomnia.rest"
+        permanent: true
+    status-to-dashboard:
+      replacePathRegex:
+        regex: "/status/?"
+        replacement: "/dashboard/"
+    replace-index:
+      replacePath:
+        path: "/index.html"

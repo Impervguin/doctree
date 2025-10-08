@@ -1,19 +1,62 @@
 services:
-#   doctree-app:
-#     container_name: doctree-app
-#     build:
-#       context: ..
-#       dockerfile: ./src/Dockerfile
-#     ports:
-#       - 3000:3000
-#     env_file:
-#       - app.env
-#     depends_on:
-#       - doctree-postgres
-#     networks:
-#       - doctree-postgres-net
-#     command: >
-#         npm run start;
+  doctree-app:
+    container_name: doctree-app
+    hostname: app
+    build:
+      context: ..
+      dockerfile: ./src/Dockerfile
+    ports:
+      - 3000:3000
+    env_file:
+      - ../app.env
+    depends_on:
+      - doctree-postgres
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+    command: >
+        npm run start;
+  
+  doctree-traefik:
+    container_name: doctree-traefik
+    hostname: traefik
+    image: traefik:v2.10
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080" 
+    volumes:
+      - ../config/traefik.yaml:/etc/traefik/traefik.yml:ro
+      - ../config/dynamic.yaml:/etc/traefik/dynamic.yml:ro
+      - ../readme/:/etc/readme
+      - ../readme.md:/etc/readme.md:ro
+    networks:
+      - doctree-minio-net
+      - doctree-traefik-net
+  
+  doctree-readme:
+    container_name: doctree-readme
+    hostname: readme
+    build:
+      context: ..
+      dockerfile: ./readme/Dockerfile
+    ports:
+      - 8081:8000
+    networks:
+      - doctree-traefik-net
+  
+
+  doctree-static-nginx:
+    container_name: doctree-static-nginx
+    hostname: static
+    image: nginx:1.25.1-alpine
+    ports:
+      - 8082:80
+    volumes:
+      - ../static/:/usr/share/nginx/html/
+    networks:
+      - doctree-traefik-net
+    
 
   doctree-postgres:
     container_name: doctree-postgres
@@ -51,6 +94,22 @@ services:
           memory: 4G
     networks:
       - doctree-postgres-net
+    
+  doctree-pgadmin:
+    container_name: doctree-pgadmin
+    hostname: pgadmin
+    image: dpage/pgadmin4:9.8
+    ports:
+      - 5050:80
+    environment:
+      PGADMIN_DEFAULT_EMAIL: impi@example.com
+      PGADMIN_DEFAULT_PASSWORD: impichek
+
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    networks:
+      - doctree-postgres-net
+      - doctree-traefik-net
   
   doctree-minio:
     container_name: doctree-minio
@@ -107,6 +166,8 @@ networks:
   doctree-postgres-net:
     driver: bridge
   doctree-minio-net:
+    driver: bridge
+  doctree-traefik-net:
     driver: bridge
 
 
