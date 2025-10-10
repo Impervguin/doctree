@@ -108,7 +108,7 @@ defineFeature(feature, (test) => {
       expect(isLocked).toBe(true);
     });
 
-    when('I initiate password reset', async () => {
+    when(' When I initiate password reset for the locked account', async () => {
         response = await request(API_BASE_URL)
           .post('/api/v2/auth/initreset')
           .send({ username });
