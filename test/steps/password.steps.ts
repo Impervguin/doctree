@@ -108,27 +108,28 @@ defineFeature(feature, (test) => {
       expect(isLocked).toBe(true);
     });
 
-    when('I initiate password reset for the locked account', async () => {
-      response = await request(API_BASE_URL)
-        .post('/api/v2/auth/initreset')
-        .send({ username });
-      expect(response.status).toBe(201);
-    });
-
-    and('I retrieve the reset token from email', async () => {
-      resetToken = await userManager.getResetPasswordTokenFromEmail(userEmail);
-      expect(resetToken).toMatch(/^[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.[A-Za-z0-9-_.+/=]*$/);
-    });
-
-    and('I reset the password using the token', async () => {
-      response = await request(API_BASE_URL)
-        .post('/api/v2/auth/reset')
-        .send({ 
-          token: resetToken,
-          newPassword: newPassword
-        });
-      expect(response.status).toBe(201);
-    });
+    when('I initiate password reset', async () => {
+        response = await request(API_BASE_URL)
+          .post('/api/v2/auth/initreset')
+          .send({ username });
+        expect(response.status).toBe(201);
+      });
+  
+      and('I retrieve the reset token from email', async () => {
+        resetToken = await userManager.getResetPasswordTokenFromEmail(userEmail);
+        expect(resetToken).toMatch(/^[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.[A-Za-z0-9-_.+/=]*$/);
+      });
+  
+      and('I reset the password using the token', async () => {
+        response = await request(API_BASE_URL)
+          .post('/api/v2/auth/reset')
+          .send({ 
+            token: resetToken,
+            newPassword: newPassword
+          });
+        expect(response.status).toBe(201);
+      });
+  
 
     then('the account should be unlocked', async () => {
       const isLocked = await userManager.isLocked(username);
@@ -175,10 +176,8 @@ defineFeature(feature, (test) => {
         });
       expect(response.status).toBe(201);
       
-      // Сохраняем access token для авторизованных запросов
       const cookies = response.get('set-cookie');
       expect(cookies).toBeDefined();
-      accessToken = cookies![0].split(';')[0].split('=')[1];
     });
 
     when('I initiate password reset', async () => {
