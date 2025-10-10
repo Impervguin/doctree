@@ -116,7 +116,6 @@ defineFeature(feature, (test) => {
       });
   
       and('I retrieve the reset token from email', async () => {
-        await new Promise(r => setTimeout(r, 10000));
         resetToken = await userManager.getResetPasswordTokenFromEmail(userEmail);
         expect(resetToken).toMatch(/^[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.[A-Za-z0-9-_.+/=]*$/);
       });
@@ -189,7 +188,6 @@ defineFeature(feature, (test) => {
     });
 
     and('I retrieve the reset token from email', async () => {
-      await new Promise(r => setTimeout(r, 10000));
       resetToken = await userManager.getResetPasswordTokenFromEmail(userEmail);
       expect(resetToken).toMatch(/^[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.[A-Za-z0-9-_.+/=]*$/);
     });
