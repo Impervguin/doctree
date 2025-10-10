@@ -30,14 +30,14 @@ jobs:
 
     - name: Create app.env
       run: |
-        echo "DB_HOST=localhost" > app.env
+        echo "DB_HOST=doctree-postgres-e2e" > app.env
         echo "DB_PORT=5432" >> app.env
         echo "DB_USER=postgres" >> app.env
         echo "DB_PASSWORD=postgres" >> app.env
         echo "DB_NAME=app_db" >> app.env
         echo "JWT_EXPIRES_IN=3600" >> app.env
         echo "JWT_SECRET=test-jwt-secret-for-e2e" >> app.env
-        echo "MINIO_ENDPOINT=localhost" >> app.env
+        echo "MINIO_ENDPOINT=doctree-minio-e2e" >> app.env
         echo "MINIO_PORT=9000" >> app.env
         echo "MINIO_ACCESS_KEY=minioadmin" >> app.env
         echo "MINIO_SECRET_KEY=minioadmin" >> app.env

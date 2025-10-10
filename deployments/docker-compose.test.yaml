@@ -6,6 +6,18 @@ services:
       dockerfile: ./src/Dockerfile
     ports:
       - "3000:3000"
+    environment:
+      - NODE_ENV=test
+      - DB_HOST=doctree-postgres-e2e
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=app_db
+      - JWT_SECRET=test-jwt-secret-for-e2e
+      - MINIO_ENDPOINT=doctree-minio-e2e
+      - MINIO_PORT=9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
     depends_on:
       doctree-postgres-e2e:
         condition: service_healthy
