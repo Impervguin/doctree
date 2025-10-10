@@ -50,7 +50,7 @@ jobs:
 
     - name: Start infrastructure with Docker Compose
       run: |
-        docker compose -f ./deployments/docker-compose.e2e.yml up -d
+        docker compose -f ./deployments/docker-compose.test.yml up -d
         sleep 30
 
     - name: Wait for services to be ready
