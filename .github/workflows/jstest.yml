@@ -24,17 +24,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: src/package-lock.json
+    - name: Install make
+      run: sudo apt-get update && sudo apt-get install -y make
 
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y make
+    - name: Install Docker
+      uses: docker/setup-docker-action@v2
 
     - name: Create app.env
       run: |
@@ -43,6 +37,7 @@ jobs:
         echo "DB_USER=postgres" >> src/app.env
         echo "DB_PASSWORD=postgres" >> src/app.env
         echo "DB_NAME=app_db" >> src/app.env
+        echo "JWT_EXPIRES_IN=3600" >> src/app.env
         echo "JWT_SECRET=test-jwt-secret-for-e2e" >> src/app.env
         echo "MINIO_ENDPOINT=localhost" >> src/app.env
         echo "MINIO_PORT=9000" >> src/app.env
@@ -55,7 +50,7 @@ jobs:
 
     - name: Start infrastructure with Docker Compose
       run: |
-        docker-compose -f ./deployments/docker-compose.e2e.yml up -d
+        docker compose -f ./deployments/docker-compose.e2e.yml up -d
         sleep 30
 
     - name: Wait for services to be ready
