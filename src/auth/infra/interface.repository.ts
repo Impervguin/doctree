@@ -7,4 +7,5 @@ export abstract class AuthRepository {
     abstract getUserById(id: string): Promise<User | null>;
     abstract createPlanner(planner: Planner): Promise<void>;
     abstract createUser(user: AppUser): Promise<void>;
+    abstract updateUser(user: AppUser): Promise<void>;
 }

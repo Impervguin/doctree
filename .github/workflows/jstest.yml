@@ -1,0 +1,94 @@
+name: E2E Tests
+
+on:
+  push:
+    branches:
+      - '**'
+
+env:
+  DB_HOST: localhost
+  DB_PORT: 5432
+  DB_USER: postgres
+  DB_PASSWORD: postgres
+  DB_NAME: app_db
+  API_BASE_URL: http://localhost:3000
+  NODE_ENV: test
+
+jobs:
+  e2e-tests:
+    name: Run E2E Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: src/package-lock.json
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y make
+
+    - name: Create app.env
+      run: |
+        echo "DB_HOST=localhost" > src/app.env
+        echo "DB_PORT=5432" >> src/app.env
+        echo "DB_USER=postgres" >> src/app.env
+        echo "DB_PASSWORD=postgres" >> src/app.env
+        echo "DB_NAME=app_db" >> src/app.env
+        echo "JWT_SECRET=test-jwt-secret-for-e2e" >> src/app.env
+        echo "MINIO_ENDPOINT=localhost" >> src/app.env
+        echo "MINIO_PORT=9000" >> src/app.env
+        echo "MINIO_ACCESS_KEY=minioadmin" >> src/app.env
+        echo "MINIO_SECRET_KEY=minioadmin" >> src/app.env
+        echo "AUTH_MAIL_PASSWORD=${{ secrets.AUTH_MAIL_PASSWORD }}" >> src/app.env
+        echo "AUTH_MAIL_USER=${{ secrets.AUTH_MAIL_USER }}" >> src/app.env
+        echo "AUTH_MAIL_HOST=${{ secrets.AUTH_MAIL_HOST }}" >> src/app.env
+
+
+    - name: Start infrastructure with Docker Compose
+      run: |
+        docker-compose -f ./deployments/docker-compose.e2e.yml up -d
+        sleep 30
+
+    - name: Wait for services to be ready
+      run: |
+        echo "Waiting for PostgreSQL..."
+        until pg_isready -h localhost -p 5432 -U postgres; do
+          sleep 5
+        done
+        
+        echo "Waiting for MinIO..."
+        until curl -f http://localhost:9000/minio/health/live; do
+          sleep 5
+        done
+
+    - name: Run E2E tests
+      run: |
+        cd src
+        npm run test:e2e
+      env:
+        TEST_EMAIL_HOST: ${{ secrets.TEST_EMAIL_HOST }}
+        TEST_EMAIL_USER: ${{ secrets.TEST_EMAIL_USER }}
+        TEST_EMAIL_PASSWORD: ${{ secrets.TEST_EMAIL_PASSWORD }}
+
+    - name: Stop infrastructure
+      if: always()
+      run: |
+        docker-compose -f docker-compose.e2e.yml down
+
+    - name: Upload test reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: e2e-test-reports
+        path: |
+          src/test/reports/
+        retention-days: 7

@@ -12,6 +12,18 @@ export class UserEntity extends BaseEntity {
 
     @Column({ name: "hash_password"})
     hashPassword: string;
+
+    @Column({ name: "is_two_factor_enabled", default: false })
+    isTwoFactorEnabled: boolean;
+
+    @Column({ name: "login_attempts", default: 0 })
+    loginAttempts: number;
+
+    @Column({ name: "is_locked", default: false })
+    isLocked: boolean;
+
+    @Column({ name: "is_temp_user", default: false })
+    isTempUser: boolean;
 }
 
 @Entity("app_admin")

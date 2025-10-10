@@ -1,0 +1,92 @@
+services:
+  doctree-app:
+    container_name: doctree-app-e2e
+    build:
+      context: ..
+      dockerfile: ./src/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=test
+      - DB_HOST=doctree-postgres-e2e
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=app_db
+      - JWT_SECRET=test-jwt-secret-for-e2e
+      - MINIO_ENDPOINT=doctree-minio-e2e
+      - MINIO_PORT=9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+    depends_on:
+      doctree-postgres-e2e:
+        condition: service_healthy
+      doctree-minio-e2e:
+        condition: service_healthy
+    networks:
+      - e2e-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
+  doctree-postgres-e2e:
+    container_name: doctree-postgres-e2e
+    image: postgres:17.4-alpine3.20
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=app_db
+    ports:
+      - "5432:5432"
+    networks:
+      - e2e-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d app_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  doctree-minio-e2e:
+    container_name: doctree-minio-e2e
+    image: minio/minio:RELEASE.2025-06-13T11-33-47Z
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: server /data --console-address ":9001"
+    networks:
+      - e2e-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  doctree-postgres-migrator-e2e:
+    container_name: doctree-migrator-e2e
+    build:
+      context: ..
+      dockerfile: pkg/pgmigrator/Dockerfile
+    environment:
+      - GOOSE_MIGRATION_DIR=/migrations
+      - GOOSE_DRIVER=postgres
+      - GOOSE_DBSTRING=postgresql://postgres:postgres@doctree-postgres-e2e:5432/app_db
+    command:
+      - "goose"
+      - "up"
+    volumes:
+      - ../migrations:/migrations
+    depends_on:
+      doctree-postgres-e2e:
+        condition: service_healthy
+    networks:
+      - e2e-network
+
+networks:
+  e2e-network:
+    driver: bridge

@@ -74,4 +74,10 @@ export class PostgresAuthRepository implements AuthRepository {
             this.dataSource.getRepository(UserEntity).save(UserMapper.toEntity(user)).then(_ => resolve()).catch(reject);
         });
     }
+
+    async updateUser(user: AppUser): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.dataSource.getRepository(UserEntity).save(UserMapper.toEntity(user)).then(_ => resolve()).catch(reject);
+        });
+    }
 }

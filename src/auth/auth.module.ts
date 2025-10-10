@@ -9,6 +9,7 @@ import { AdminGuard, PlannerGuard } from "./middle/user.guard";
 import { AuthController } from "./api/auth.controller";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { AdminEntity, ParseSchedulerEntity, UserEntity } from "./infra/user.entity";
+import { TwoFaModule } from "./2fa/mail.module";
 
 
 
@@ -25,6 +26,7 @@ import { AdminEntity, ParseSchedulerEntity, UserEntity } from "./infra/user.enti
             inject: [ConfigService],
         }),
         TypeOrmModule.forFeature([UserEntity, AdminEntity, ParseSchedulerEntity]),
+        TwoFaModule,
     ],
     providers: [
         AuthService, 
