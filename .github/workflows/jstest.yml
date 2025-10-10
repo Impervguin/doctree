@@ -35,7 +35,7 @@ jobs:
         echo "DB_USER=postgres" >> app.env
         echo "DB_PASSWORD=postgres" >> app.env
         echo "DB_NAME=app_db" >> app.env
-        echo "JWT_EXPIRES_IN=3600" >> app.env
+        echo "JWT_EXPIRES_IN=36000" >> app.env
         echo "JWT_SECRET=test-jwt-secret-for-e2e" >> app.env
         echo "MINIO_ENDPOINT=doctree-minio-e2e" >> app.env
         echo "MINIO_PORT=9000" >> app.env
