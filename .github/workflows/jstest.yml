@@ -41,9 +41,9 @@ jobs:
         echo "MINIO_PORT=9000" >> src/app.env
         echo "MINIO_ACCESS_KEY=minioadmin" >> src/app.env
         echo "MINIO_SECRET_KEY=minioadmin" >> src/app.env
-        echo "AUTH_MAIL_PASSWORD=${{ secrets.AUTH_MAIL_PASSWORD }}" >> src/app.env
-        echo "AUTH_MAIL_USER=${{ secrets.AUTH_MAIL_USER }}" >> src/app.env
-        echo "AUTH_MAIL_HOST=${{ secrets.AUTH_MAIL_HOST }}" >> src/app.env
+        echo "AUTH_MAIL_PASSWORD=${{ secrets.TEST_EMAIL_PASSWORD }}" >> src/app.env
+        echo "AUTH_MAIL_USER=${{ secrets.TEST_EMAIL_USER }}" >> src/app.env
+        echo "AUTH_MAIL_HOST=${{ secrets.TEST_EMAIL_HOST }}" >> src/app.env
 
 
     - name: Start infrastructure with Docker Compose
@@ -77,12 +77,7 @@ jobs:
 
     - name: Run E2E tests
       run: |
-        cd src
         npm run test:e2e
-      env:
-        TEST_EMAIL_HOST: ${{ secrets.TEST_EMAIL_HOST }}
-        TEST_EMAIL_USER: ${{ secrets.TEST_EMAIL_USER }}
-        TEST_EMAIL_PASSWORD: ${{ secrets.TEST_EMAIL_PASSWORD }}
 
     - name: Stop infrastructure
       if: always()
