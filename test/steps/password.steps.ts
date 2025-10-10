@@ -82,7 +82,6 @@ defineFeature(feature, (test) => {
     ({ given, when, then, and }) => {
     
     let username: string;
-    const originalPassword = 'OriginalP@ssw0rd';
     const newPassword = 'NewP@ssw0rd123';
 
     given(/^a test user "([^"]*)" with password "([^"]*)"$/, 
