@@ -44,7 +44,7 @@ jobs:
         echo "MINIO_BUCKET_NAME=app_db" >> app.env
         echo "AUTH_MAIL_PASSWORD=${{ secrets.TEST_EMAIL_PASSWORD }}" >> app.env
         echo "AUTH_MAIL_USER=${{ secrets.TEST_EMAIL_USER }}" >> app.env
-        echo "AUTH_MAIL_HOST=${{ secrets.TEST_EMAIL_HOST }}" >> app.env
+        echo "AUTH_MAIL_HOST=${{ secrets.AUTH_EMAIL_HOST }}" >> app.env
 
 
     - name: Start infrastructure with Docker Compose
