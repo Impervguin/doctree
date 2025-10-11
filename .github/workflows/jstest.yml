@@ -83,7 +83,7 @@ jobs:
     - name: Stop infrastructure
       if: always()
       run: |
-        docker compose -f ./deployments/docker-compose.test.yml down
+        docker compose -f ./deployments/docker-compose.test.yaml down
 
     - name: Upload test reports
       uses: actions/upload-artifact@v4
