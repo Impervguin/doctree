@@ -37,4 +37,13 @@ export class DocumentSearchRequest {
         required: false,
     })
     text?: string;
+
+    @IsOptional()
+    @IsUUID('4')
+    @ApiProperty({
+        example: '00000000-0000-0000-0000-000000000000',
+        description: 'Document node id',
+        required: false,
+    })
+    nodeId?: string;
 }

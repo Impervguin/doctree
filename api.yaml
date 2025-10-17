@@ -12,10 +12,10 @@ tags:
   - name: Auth
 components:
   securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: access-token
 
   schemas:
     GetFile:
@@ -224,9 +224,6 @@ components:
           items:
             $ref: "#/components/schemas/Tree"
 
-security:
-  - bearerAuth: []
-
 paths:
   /auth/login:
     post:
@@ -321,6 +318,13 @@ paths:
         responses:
           "201":
             description: Узел создан
+            content: 
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    id:
+                      type: string
           "403":
             description: У пользователя нет прав администратора
           "400": 
@@ -395,7 +399,7 @@ paths:
           description: У пользователя нет прав администратора
         "404":
           description: Не найден узел
-  /trees/root:
+  /trees:
     get:
       tags: [Tree]
       summary: Получить все деревья
@@ -429,18 +433,25 @@ paths:
       responses:
         "201":
           description: Корень создан
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
         "403":
           description: У пользователя нет прав администратора
         "400":
           description: Некорректные данные
 
-  /trees/root/{id}:
+  /trees/{rootId}:
     get:
       tags: [Tree]
       summary: Получить целое дерево по узлу внутри
       parameters:
         - in: path
-          name: id
+          name: rootId
           required: true
           schema:
             type: string
@@ -464,7 +475,7 @@ paths:
       summary: Удалить дерево
       parameters:
         - in: path
-          name: id
+          name: rootId
           required: true
           schema:
             type: string
@@ -479,7 +490,7 @@ paths:
         "404":
           description: Узел не найден
 
-  /trees/sub/{id}:
+  /trees/{id}/subtree:
     get:
       tags: [Tree]
       summary: Получить поддерево
@@ -520,6 +531,14 @@ paths:
       responses:
         "201":
           description: Документ создан
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+            
         "403":
             description: У пользователя нет прав
         "400":
@@ -543,6 +562,10 @@ paths:
             type: string
         - in: query
           name: text
+          schema:
+            type: string
+        - in: query
+          name: nodeId
           schema:
             type: string
       responses:
@@ -636,33 +659,6 @@ paths:
             description: У пользователя нет прав
         "404":
           description: Документ не найден
-  
-  /docs/nodes/{nodeId}:
-    get:
-      tags: [Document]
-      summary: Получить все документы, привязанные к узлу
-      parameters:
-        - in: path
-          name: nodeId
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        "200":
-          description: Найденные документы
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/DocumentWithNodes"
-        "400":
-          description: Некорректный запрос
-        "403":
-            description: У пользователя нет прав
-        "404":
-          description: Узел не найден
 
   /docs/{id}/files:
     patch:

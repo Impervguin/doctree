@@ -20,7 +20,8 @@ export class TextManyToManyFilter<
         private readonly junctionRelationField: Extract<keyof J, string>,
         private readonly relationJoinField: Extract<keyof R, string>,
         relation: EntityTarget<R>,
-        junction: EntityTarget<J>
+        junction: EntityTarget<J>,
+        private readonly isRelationFieldUUID: boolean = false
     ) {
         if (typeof relation === 'function') {
             this.relationName = relation.name;
@@ -59,10 +60,16 @@ export class TextManyToManyFilter<
         );
 
         const paramName = `search_${relationAlias}_${this.relationField}`;
-
-        query.andWhere(
-            `LOWER(${relationAlias}.${this.relationField}) LIKE :${paramName}`,
-            { [paramName]: `%${this.searchTerm.toLowerCase()}%` }
-        );
+        if (this.isRelationFieldUUID) {
+            query.andWhere(
+                `${relationAlias}.${this.relationField} = :${paramName}`,
+                { [paramName]: this.searchTerm }
+            );
+        } else {
+            query.andWhere(
+                `LOWER(${relationAlias}.${this.relationField}) LIKE :${paramName}`,
+                { [paramName]: `%${this.searchTerm.toLowerCase()}%` }
+            );
+        }
     }
 }

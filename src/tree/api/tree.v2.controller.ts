@@ -12,6 +12,7 @@ import { ValidateObject } from 'src/utils/validate.throw';
 import { NodeNotFoundError } from '../services/errors.service';
 import { NotFoundError } from 'rxjs';
 import { plainToClass } from 'class-transformer';
+import { CreateNodeResponseDto, CreateRootResponseDto } from './dto/create.response';
 
 
 @Controller(
@@ -41,12 +42,13 @@ export class TreeControllerV2 {
     @UseGuards(AdminGuard)
     @UsePipes(new ValidationPipe())
     @ApiOperation({ summary: 'Create node' })
-    @ApiResponse({ status: 201, description: 'Node created' })
+    @ApiResponse({ status: 201, description: 'Node created', type: CreateNodeResponseDto})
     @ApiResponse({ status: 403, description: 'Do not have rights on this operation' })
     @ApiResponse({ status: 400, description: 'Bad request' })
     @ApiBody({ type: CreateNodeRequest })
-    async createNode(@Body() req : CreateNodeRequest) {
-        await this.treeService.createNode(req);
+    async createNode(@Body() req : CreateNodeRequest) : Promise<CreateNodeResponseDto> {
+        const tree = await this.treeService.createNode(req);
+        return {id: tree.id};
     }
 
     @Get('nodes/:id')
@@ -117,7 +119,7 @@ export class TreeControllerV2 {
         }
     }
 
-    @Get("root")
+    @Get("")
     @UseGuards(AppUserGuard)
     @UsePipes(new ValidationPipe())
     @ApiOperation({ summary: 'Get all trees' })
@@ -128,19 +130,20 @@ export class TreeControllerV2 {
         return {trees: trees.map(tree => TreeMapper.toDto(tree))};
     }
 
-    @Post('root')
+    @Post('')
     @UseGuards(AdminGuard)
     @UsePipes(new ValidationPipe())
     @ApiOperation({ summary: 'Create root' })
-    @ApiResponse({ status: 201, description: 'Root created' })
+    @ApiResponse({ status: 201, description: 'Root created', type: CreateRootResponseDto})
     @ApiResponse({ status: 403, description: 'Do not have rights on this operation' })
     @ApiResponse({ status: 400, description: 'Bad request' })
     @ApiBody({ type: CreateRootRequest })
-    async createRoot(@Body() req : CreateRootRequest) {
-        await this.treeService.createRoot(req);
+    async createRoot(@Body() req : CreateRootRequest) : Promise<CreateRootResponseDto> {
+        const tree = await this.treeService.createRoot(req);
+        return {id: tree.id};
     }
 
-    @Get('root/:id')
+    @Get(':rootId')
     @UseGuards(AppUserGuard)
     @UsePipes(new ValidationPipe())
     @ApiOperation({ summary: 'Get root tree' })
@@ -148,8 +151,8 @@ export class TreeControllerV2 {
     @ApiResponse({ status: 403, description: 'Do not have rights on this operation' })
     @ApiResponse({ status: 404, description: 'Root tree not found' })
     @ApiResponse({ status: 400, description: 'Bad request' })
-    @ApiParam({ name: 'id', type: String, description: 'Node id' })
-    async getRootTree(@Param('id', new ParseUUIDPipe({ version: '4' })) id : string) : Promise<GetRootTreeResponseDto> {
+    @ApiParam({ name: 'rootId', type: String, description: 'Node id' })
+    async getRootTree(@Param('rootId', new ParseUUIDPipe({ version: '4' })) id : string) : Promise<GetRootTreeResponseDto> {
         try {
             const tree = await this.treeService.getRootTree(id);
             return {tree: TreeMapper.toDto(tree)};
@@ -161,7 +164,7 @@ export class TreeControllerV2 {
         }
     }
 
-    @Get('sub/:id')
+    @Get(':id/subtree')
     @UseGuards(AppUserGuard)
     @UsePipes(new ValidationPipe())
     @ApiOperation({ summary: 'Get subtree' })
@@ -169,8 +172,8 @@ export class TreeControllerV2 {
     @ApiResponse({ status: 403, description: 'Do not have rights on this operation' })
     @ApiResponse({ status: 404, description: 'Subtree not found' })
     @ApiResponse({ status: 400, description: 'Bad request' })
-    @ApiParam({ name: 'id', type: String, description: 'Node id' })
-    async getSubTree(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string): Promise<GetSubTreeResponseDto> {
+    @ApiParam({ name: 'rootId', type: String, description: 'Node id' })
+    async getSubTree(@Param('rootId', new ParseUUIDPipe({ version: '4' })) id: string): Promise<GetSubTreeResponseDto> {
         try {
             const tree = await this.treeService.getSubTree(id);
             return { tree: TreeMapper.toDto(tree) };
@@ -182,7 +185,7 @@ export class TreeControllerV2 {
         }
     }
 
-    @Delete('root/:id')
+    @Delete(':rootId')
     @UseGuards(AdminGuard)
     @UsePipes(new ValidationPipe())
     @ApiOperation({ summary: 'Delete root' })
@@ -190,8 +193,8 @@ export class TreeControllerV2 {
     @ApiResponse({ status: 403, description: 'Do not have rights on this operation' })
     @ApiResponse({ status: 404, description: 'Root not found' })
     @ApiResponse({ status: 400, description: 'Bad request' })
-    @ApiParam({ name: 'id', type: String, description: 'Node id' })
-    async deleteRoot(@Param('id', new ParseUUIDPipe({ version: '4' })) id : string) {
+    @ApiParam({ name: 'rootId', type: String, description: 'Node id' })
+    async deleteRoot(@Param('rootId', new ParseUUIDPipe({ version: '4' })) id : string) {
         try {
             await this.treeService.deleteRoot(id);
         } catch (e) {

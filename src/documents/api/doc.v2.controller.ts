@@ -14,6 +14,7 @@ import { AttachDocumentToNodeRequest, DetachDocumentFromNodeRequest, RelateDocum
 import { plainToClass } from "class-transformer";
 import { DocumentRelationType } from "../domain/doc.model";
 import { DocumentNotAttachedError, DocumentNotFoundError, DocumentNotLinkedError, NodeNotFoundError, NoSelfreferenceError } from "../services/errors.service";
+import { CreateDocumentResponseDto } from "./dto/doc.create";
 
 
 
@@ -31,8 +32,9 @@ export class DocumentControllerV2 {
     @ApiResponse({ status: 201, description: 'Document successfully created' })
     @ApiResponse({ status: 403, description: 'Do not have rights on this operation' })
     @ApiResponse({ status: 400, description: 'Bad request' })
-    async createDocument(@Body() req: DocumentCreateRequest) {
-        await this.docService.createDocument(req);
+    async createDocument(@Body() req: DocumentCreateRequest) : Promise<CreateDocumentResponseDto> {
+        const doc = await this.docService.createDocument(req);
+        return {id: doc.id};
     }
 
     @Get("")
@@ -108,27 +110,26 @@ export class DocumentControllerV2 {
         }
     }
 
-    @Get("nodes/:nodeId")
-    @UseGuards(AppUserGuard)
-    @UsePipes(new ValidationPipe())
-    @ApiOperation({ summary: 'Get node with its documents' })
-    @ApiResponse({ status: 200, description: 'Node found', type: NodeWithDocumentsResponseDto })
-    @ApiResponse({ status: 403, description: 'Do not have rights on this operation' })
-    @ApiResponse({ status: 404, description: 'Node not found' })
-    @ApiResponse({ status: 400, description: 'Bad request' })
-    @ApiParam({ name: 'nodeId', type: String, description: 'Node id' })
-    async getNodeWithDocuments(@Param('nodeId', new ParseUUIDPipe({ version: '4' })) nodeId: string): Promise<NodeWithDocumentsResponseDto> {
-        try {
-            const node = await this.docService.getNodeWithDocuments(nodeId);
-            return NodeWithDocumentMapper.toDto(node);
-        } catch (e) {
-            if (e instanceof DocumentNotFoundError || e instanceof NodeNotFoundError) {
-                throw new NotFoundException(e.message);
-            }
-            throw e;
-        }
-        
-    }
+    // @Get("nodes/:nodeId")
+    // @UseGuards(AppUserGuard)
+    // @UsePipes(new ValidationPipe())
+    // @ApiOperation({ summary: 'Get node with its documents' })
+    // @ApiResponse({ status: 200, description: 'Node found', type: NodeWithDocumentsResponseDto })
+    // @ApiResponse({ status: 403, description: 'Do not have rights on this operation' })
+    // @ApiResponse({ status: 404, description: 'Node not found' })
+    // @ApiResponse({ status: 400, description: 'Bad request' })
+    // @ApiParam({ name: 'nodeId', type: String, description: 'Node id' })
+    // async getNodeWithDocuments(@Param('nodeId', new ParseUUIDPipe({ version: '4' })) nodeId: string): Promise<NodeWithDocumentsResponseDto> {
+    //     try {
+    //         const node = await this.docService.getNodeWithDocuments(nodeId);
+    //         return NodeWithDocumentMapper.toDto(node);
+    //     } catch (e) {
+    //         if (e instanceof DocumentNotFoundError || e instanceof NodeNotFoundError) {
+    //             throw new NotFoundException(e.message);
+    //         }
+    //         throw e;
+    //     }
+    // }
 
     @Patch(":id/files")
     @UseGuards(AppUserGuard)

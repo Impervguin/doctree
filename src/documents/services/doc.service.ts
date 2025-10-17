@@ -34,9 +34,9 @@ export class DocumentService {
         this.bucketName = this.configService.getOrThrow('MINIO_BUCKET_NAME');
     }
 
-    async createDocument(req : DocumentCreateRequest): Promise<void> {
+    async createDocument(req : DocumentCreateRequest): Promise<Document> {
         let doc = new Document(req.title, req.description !== undefined ? req.description : null, req.tags, [], [], []);
-        return this.documentRepository.createDocument(doc);
+        return this.documentRepository.createDocument(doc).then(_ => doc);
     }
 
     async getDocument(docId: string): Promise<Document> {

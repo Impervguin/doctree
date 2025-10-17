@@ -1,6 +1,6 @@
 import { DataSource, IsNull } from "typeorm";
 import { Document } from "../domain/doc.model";
-import { DocumentEntity, DocumentTagEntity, ParsedFileEntity, DocumentFileEntity } from "./doc.entity";
+import { DocumentEntity, DocumentTagEntity, ParsedFileEntity, DocumentFileEntity, DocumentNodeEntity } from "./doc.entity";
 import { DocumentMapper } from "./doc.mapper";
 import { Injectable } from "@nestjs/common";
 import { NodeEntity } from "./doc.entity";
@@ -113,6 +113,19 @@ export class PostgresDocumentRepository implements DocumentRepository {
                     'fileId',
                     ParsedFileEntity,
                     DocumentFileEntity
+                )
+            )
+            .addFilter(
+                new TextManyToManyFilter<DocumentEntity, DocumentNodeEntity, DocumentNodeEntity, DocumentSearchRequest>(
+                    'nodeId',
+                    'nodeId',
+                    'id',
+                    'documentId',
+                    'nodeId',
+                    'nodeId',
+                    DocumentNodeEntity,
+                    DocumentNodeEntity,
+                    true
                 )
             );
 
