@@ -44,8 +44,8 @@ export class DocumentService {
         if (doc === null) {
             throw new DocumentNotFoundError('Document not found');
         }
-        doc.fillFiles(fileId => this.fileService.getFileInfo(fileId));
-        doc.fillNodes(nodeId => this.nodeService.getNode(nodeId));
+        await doc.fillFiles(fileId => this.fileService.getFileInfo(fileId));
+        await doc.fillNodes(nodeId => this.nodeService.getNode(nodeId));
         return doc;
     }
 

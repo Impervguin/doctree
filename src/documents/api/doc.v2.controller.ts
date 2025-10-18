@@ -254,7 +254,7 @@ export class DocumentControllerV2 {
     @ApiResponse({ status: 403, description: 'Do not have rights on this operation' })
     @ApiResponse({ status: 404, description: 'Document not found' })
     @ApiResponse({ status: 400, description: 'Bad request' })
-    async relateDocuments(@Param('id', new ParseUUIDPipe({ version: '4' })) docId: string, @Body() @Param('relatedId', new ParseUUIDPipe({ version: '4' })) relatedId: string): Promise<void> {
+    async relateDocuments(@Param('id', new ParseUUIDPipe({ version: '4' })) docId: string, @Param('relatedId', new ParseUUIDPipe({ version: '4' })) relatedId: string): Promise<void> {
         const req = plainToClass(RelateDocumentsRequest, {
             documentId0: docId,
             documentId1: relatedId,

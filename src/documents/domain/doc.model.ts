@@ -70,13 +70,16 @@ export class Document extends BaseModel {
         if (this.files !== undefined) {
             throw new Error("Files already filled");
         }
-        this.files = [];
         return Promise.all(this.fileIds.map(fileId => fileFunc(fileId).then(fileInfo => {
             if (fileInfo === null) {
                 throw new Error("File not found");
             }
-            this.files!.push(fileInfo);
-        }))).then(_ => undefined);
+            if (!this.files) {
+                this.files = [];
+            }
+            this.files.push(fileInfo);
+            console.log(this.files);
+        }))).then(_ => {});
     }
 
     fillNodes(nodeFunc: (nodeId: string) => Promise<Node | null>): Promise<void> {
