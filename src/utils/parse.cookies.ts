@@ -6,7 +6,7 @@ export function ParseCookies(req: Request): any {
     if (allCookies) {
         allCookies.split(';').forEach(cookie => {
             const [key, value] = cookie.split('=');
-            cookies[key] = value;
+            cookies[key.trim()] = value.trim();
         });
     }
     return cookies;
