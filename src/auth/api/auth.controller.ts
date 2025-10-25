@@ -5,7 +5,7 @@ import { SignInRequest } from '../services/requests/sign.req';
 import { Response } from '@nestjs/common';
 import { Response as ExpressResponse, Request as ExpressRequest } from 'express';
 import { SetAccessToken, ClearAccessToken } from '../middle/auth.guard';
-import { UserNotFoundError } from '../services/errors.service';
+import { IncorrectPasswordError, UserNotFoundError } from '../services/errors.service';
 import { NoAccessTokenError } from '../middle/errors.guard';
 import { RegisterParseSchedulerRequest, RegisterUserRequest } from '../services/requests/register.req';
 import { AdminGuard, AppUserGuard } from '../middle/user.guard';
@@ -27,9 +27,12 @@ export class AuthController {
         try {
             const accessToken = await this.authService.signIn(req);
             SetAccessToken(accessToken, res);
+            res.sendStatus(200);
             res.send();
         } catch (e) {
             if (e instanceof UserNotFoundError) {
+                throw new BadRequestException(e.message);
+            } else if (e instanceof IncorrectPasswordError) {
                 throw new BadRequestException(e.message);
             } else {
                 throw e;

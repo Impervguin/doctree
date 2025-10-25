@@ -3,7 +3,7 @@ COMPOSE_DEV:=deployments/docker-compose.dev.yaml
 COMPOSE_PROD:=deployments/docker-compose.yaml
 COMPOSE_ENV:=deployments/compose.env
 CONTAINERS:=doctree-postgres doctree-minio doctree-postgres-migrator doctree-app doctree-traefik doctree-readme doctree-static-nginx doctree-pgadmin
-
+# CONTAINERS:=doctree-postgres doctree-minio doctree-postgres-migrator
 define compose_file
 	$(if $(findstring dev-,$(1)),$(COMPOSE_DEV),$(COMPOSE_PROD))
 endef
