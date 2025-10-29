@@ -2,8 +2,8 @@ DOCKER:=docker
 COMPOSE_DEV:=deployments/docker-compose.dev.yaml
 COMPOSE_PROD:=deployments/docker-compose.yaml
 COMPOSE_ENV:=deployments/compose.env
-CONTAINERS:=doctree-postgres doctree-minio doctree-postgres-migrator doctree-app doctree-traefik doctree-readme doctree-static-nginx doctree-pgadmin
-# CONTAINERS:=doctree-postgres doctree-minio doctree-postgres-migrator
+CONTAINERS:=doctree-postgres doctree-minio doctree-postgres-migrator doctree-app doctree-app-readonly1 doctree-app-readonly2 doctree-traefik doctree-readme doctree-static-nginx doctree-loki doctree-grafana doctree-promtail
+# CONTAINERS:=doctree-traefik
 define compose_file
 	$(if $(findstring dev-,$(1)),$(COMPOSE_DEV),$(COMPOSE_PROD))
 endef
@@ -19,6 +19,9 @@ mock:
 
 %up:
 	$(DOCKER) compose --env-file $(COMPOSE_ENV) -f $(call compose_file,$@) up -d $(CONTAINERS)
+
+%upa:
+	$(DOCKER) compose --env-file $(COMPOSE_ENV) -f $(call compose_file,$@) up $(CONTAINERS)
 
 %upd:
 	$(DOCKER) compose --env-file $(COMPOSE_ENV) -f $(call compose_file,$@) up -d --build $(CONTAINERS)

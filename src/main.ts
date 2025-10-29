@@ -2,9 +2,15 @@ import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { VersioningType } from '@nestjs/common';
 import { AppModule } from './app.module';
+import { LoggingInterceptor } from './utils/logging.interceptor';
+import { ReadOnlyGuard } from './readonly/readonly.guard';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
+  app.useGlobalInterceptors(new LoggingInterceptor());
+  app.useGlobalGuards(new ReadOnlyGuard(configService));
 
   app.enableVersioning({
     type: VersioningType.URI,
@@ -44,6 +50,9 @@ async function bootstrap() {
     ),
   }
   SwaggerModule.setup('api/v2', app, v2Document);
+
+
+  
 
   await app.listen(process.env.PORT ?? 3000);
 }

@@ -8,14 +8,56 @@ services:
     ports:
       - 3000:3000
     env_file:
-      - ../app.env
+      - ../config/app.env
     depends_on:
       - doctree-postgres
     networks:
       - doctree-postgres-net
       - doctree-minio-net
+    volumes:
+      - ../src:/usr/src/app/src
     command: >
-        npm run start;
+        npm run start:dev
+
+  doctree-app-readonly1:
+    container_name: doctree-app-readonly1
+    hostname: app-readonly1
+    build:
+      context: ..
+      dockerfile: ./src/Dockerfile
+    ports:
+      - 3001:3000
+    env_file:
+      - ../config/app.readonly1.env
+    depends_on:
+      - doctree-postgres
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+    volumes:
+      - ../src:/usr/src/app/src
+    command: >
+        npm run start:dev
+
+  doctree-app-readonly2:
+    container_name: doctree-app-readonly2
+    hostname: app-readonly2
+    build:
+      context: ..
+      dockerfile: ./src/Dockerfile
+    ports:
+      - 3002:3000
+    env_file:
+      - ../config/app.readonly2.env
+    depends_on:
+      - doctree-postgres
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+    volumes:
+      - ../src:/usr/src/app/src
+    command: >
+        npm run start:dev
   
   doctree-traefik:
     container_name: doctree-traefik
@@ -158,9 +200,52 @@ services:
     networks:
       - doctree-postgres-net
 
+  doctree-loki:
+    container_name: doctree-loki
+    hostname: loki
+    image: grafana/loki:latest
+    ports:
+      - 3100:3100
+    volumes:
+      - loki-data:/loki
+    networks:
+      - doctree-traefik-net
+
+  doctree-grafana:
+   container_name: doctree-grafana
+   hostname: grafana
+   image: grafana/grafana:latest
+   ports:
+     - 3003:3000
+   environment:
+     - GF_SECURITY_ADMIN_PASSWORD=admin
+     - GF_SERVER_ROOT_URL=http://localhost/monitoring
+     - GF_SERVER_SERVE_FROM_SUB_PATH=true
+   volumes:
+     - grafana-data:/var/lib/grafana
+   depends_on:
+     - doctree-loki
+   networks:
+     - doctree-traefik-net
+
+  doctree-promtail:
+    container_name: doctree-promtail
+    hostname: promtail
+    image: grafana/promtail:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../promtail-config.yaml:/etc/promtail/config.yml:ro
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - doctree-loki
+    networks:
+      - doctree-traefik-net
+
 volumes:
   doctree-postgres-data:
   doctree-minio-data:
+  loki-data:
+  grafana-data:
 
 networks:
   doctree-postgres-net:

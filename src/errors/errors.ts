@@ -11,3 +11,9 @@ export class ConflictException extends HttpException {
     super(message, 409);
   }
 }
+
+export class ReadOnlyModeError extends HttpException {
+  constructor(message: string = 'This operation is not allowed in read-only mode') {
+    super(message, 403);
+  }
+}

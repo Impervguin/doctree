@@ -4,10 +4,16 @@ http:
       rule: "PathPrefix(`/media`)"
       service: minio-media
       middlewares: ["strip-media"]
-      
-    app-api-router:
-      rule: "PathPrefix(`/api/v2`) || PathPrefix(`/api/v1`)"
+
+    app-api-router-get:
+      rule: "(PathPrefix(`/api/v2`) || PathPrefix(`/api/v1`)) && Method(`GET`, `HEAD`, `OPTIONS`)"
       service: api
+      middlewares: ["app-name-header"]
+
+    app-api-router-write:
+      rule: "(PathPrefix(`/api/v2`) || PathPrefix(`/api/v1`)) && Method(`POST`, `PUT`, `PATCH`, `DELETE`)"
+      service: api-write
+      middlewares: ["app-name-header"]
       
     legacy-router:
       rule: "PathPrefix(`/legacy`)"
@@ -37,6 +43,12 @@ http:
       middlewares:
         - replace-management
       service: static-service
+
+    monitoring-router:
+      rule: "PathPrefix(`/monitoring`)"
+      middlewares:
+        - monitoring-header-scripts
+      service: grafana-service
 
     index-static-router:
       rule: "Path(`/`)"
@@ -75,11 +87,31 @@ http:
       loadBalancer:
         servers:
           - url: "http://minio:9000"
-    
+
     api:
+      weighted:
+        services:
+          - name: api-write
+            weight: 2
+          - name: api-read1
+            weight: 1
+          - name: api-read2
+            weight: 1
+
+    api-write:
       loadBalancer:
         servers:
           - url: "http://app:3000"
+    
+    api-read1:
+      loadBalancer:
+        servers:
+          - url: "http://app-readonly1:3000"
+    
+    api-read2:
+      loadBalancer:
+        servers:
+          - url: "http://app-readonly2:3000"
     
     readme-service:
       loadBalancer:
@@ -100,29 +132,34 @@ http:
       loadBalancer:
         servers:
           - url: "http://pgadmin:80"
-    
+
+    grafana-service:
+      loadBalancer:
+        servers:
+          - url: "http://grafana:3000"
+
     noop:
 
   middlewares:
     strip-media:
       stripPrefix:
-        prefixes: 
+        prefixes:
           - "/media"
     strip-reserved:
       stripPrefix:
-        prefixes: 
+        prefixes: doctree
           - "/reserved"
     strip-docs:
       stripPrefix:
-        prefixes: 
+        prefixes:
           - "/documentation"
     strip-admin:
       stripPrefix:
-        prefixes: 
+        prefixes:
           - "/admin"
     strip-status:
       stripPrefix:
-        prefixes: 
+        prefixes:
           - "/status"
     replace-management:
       replacePath:
@@ -152,4 +189,21 @@ http:
       headers:
         customRequestHeaders:
           X-Script-Name: /status
+    strip-monitoring:
+      stripPrefix:
+        prefixes:
+          - "/monitoring"
+    monitoring-header-scripts:
+      headers:
+        customRequestHeaders:
+          X-Script-Name: /monitoring
+    monitoring-rewrite:
+      replacePathRegex:
+        regex: "^/monitoring(/.*)?$"
+        replacement: "$1"
+    app-name-header:
+      headers:
+        customResponseHeaders:
+          Server: "doctree-app"
+
       

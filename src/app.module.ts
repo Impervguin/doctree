@@ -10,9 +10,22 @@ import { DocumentModule } from './documents/doc.module';
 import { ParseModule } from './text-parser/parse.module';
 import { ParsingJobModule } from './parser-jobs/job.module';
 import { AuthModule } from './auth/auth.module';
+import { ReadOnlyModule } from './readonly/readonly.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
-  imports: [DatabaseModule, MinioModule, NodeModule, TreeModule, FileModule, DocumentModule, ParseModule, ParsingJobModule, AuthModule],
+  imports: [
+    DatabaseModule,
+    MinioModule,
+    NodeModule,
+    TreeModule,
+    FileModule,
+    DocumentModule,
+    ParseModule,
+    ...(process.env.READONLY_MODE !== 'true' ? [ParsingJobModule] : []),
+    AuthModule,
+    ReadOnlyModule
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
