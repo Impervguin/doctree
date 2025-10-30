@@ -11,8 +11,8 @@ export class ReadOnlyGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const method = request.method;
 
-    if (isReadOnly && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
-      throw new ReadOnlyModeError();
+    if (isReadOnly && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) && !request.url.startsWith('/api/v2/auth/login')) {
+      throw new ReadOnlyModeError('This operation is not allowed in read-only mode. Please use the main application instance for write operations.');
     }
 
     return true;

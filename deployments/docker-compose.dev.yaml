@@ -116,12 +116,21 @@ services:
       - "work_mem=16MB"
       - "-c"
       - "maintenance_work_mem=512MB"
+      - "-c"
+      - "wal_level=logical"
+      - "-c"
+      - "max_wal_senders=10"
+      - "-c"
+      - "max_replication_slots=10"
+      - "-c"
+      - "listen_addresses=*"
     env_file:
       - pg.env
     ports:
       - 5432:5432
     volumes:
       - doctree-postgres-data:/var/lib/postgresql/data
+      - ./setup-master.sh:/usr/local/bin/setup-master.sh
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
@@ -136,6 +145,14 @@ services:
           memory: 4G
     networks:
       - doctree-postgres-net
+    entrypoint: >
+      sh -c "
+        if [ -f /var/lib/postgresql/data/postgresql.conf ]; then
+          echo 'Setting up master replication...';
+          /usr/local/bin/setup-master.sh;
+        fi;
+        exec docker-entrypoint.sh postgres -c 'max_connections=50' -c 'shared_buffers=1GB' -c 'effective_cache_size=4GB' -c 'work_mem=16MB' -c 'maintenance_work_mem=512MB' -c 'wal_level=logical' -c 'max_wal_senders=10' -c 'max_replication_slots=10' -c 'listen_addresses=*'
+      "
     
   doctree-pgadmin:
     container_name: doctree-pgadmin
@@ -216,7 +233,7 @@ services:
    hostname: grafana
    image: grafana/grafana:latest
    ports:
-     - 3003:3000
+     - 23003:3000
    environment:
      - GF_SECURITY_ADMIN_PASSWORD=admin
      - GF_SERVER_ROOT_URL=http://localhost/monitoring
@@ -250,10 +267,13 @@ volumes:
 networks:
   doctree-postgres-net:
     driver: bridge
+    external: true
   doctree-minio-net:
     driver: bridge
+    external: true
   doctree-traefik-net:
     driver: bridge
+    external: true
 
 
     

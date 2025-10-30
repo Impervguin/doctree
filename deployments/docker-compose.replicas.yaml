@@ -1,0 +1,124 @@
+services:
+  doctree-postgres-slave:
+    container_name: doctree-postgres-slave
+    hostname: pg-slave
+    image: postgres:17.4-alpine3.20
+    command:
+      - "postgres"
+      - "-c"
+      - "max_connections=50"
+      - "-c"
+      - "shared_buffers=1GB"
+      - "-c"
+      - "effective_cache_size=4GB"
+      - "-c"
+      - "work_mem=16MB"
+      - "-c"
+      - "maintenance_work_mem=512MB"
+      - "-c"
+      - "hot_standby=on"
+    env_file:
+      - pg-slave.env
+    ports:
+      - 5433:5432
+    volumes:
+      - ./setup-slave.sh:/usr/local/bin/setup-slave.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+    networks:
+      - doctree-postgres-net
+    entrypoint: >
+      sh -c "
+        if [ ! -f /var/lib/postgresql/data/standby.signal ]; then
+          echo 'Setting up slave replication...';
+          /usr/local/bin/setup-slave.sh;
+        fi;
+        exec docker-entrypoint.sh postgres -c 'max_connections=50' -c 'shared_buffers=1GB' -c 'effective_cache_size=4GB' -c 'work_mem=16MB' -c 'maintenance_work_mem=512MB' -c 'hot_standby=on'
+      "
+
+  doctree-app-mirror:
+    container_name: doctree-app-mirror
+    hostname: app-mirror
+    build:
+      context: ..
+      dockerfile: ./src/Dockerfile
+    ports:
+      - 3003:3000
+    env_file:
+      - ../config/app.mirror.env
+    depends_on:
+      - doctree-postgres-slave
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+      - doctree-traefik-net
+    volumes:
+      - ../src:/usr/src/app/src
+      - ../config/app.mirror.env:/usr/src/app/app.env
+    command: >
+        npm run start:dev
+
+  doctree-app-mirror-readonly1:
+    container_name: doctree-app-mirror-readonly1
+    hostname: app-mirror-readonly1
+    build:
+      context: ..
+      dockerfile: ./src/Dockerfile
+    ports:
+      - 3004:3000
+    env_file:
+      - ../config/app.mirror.readonly1.env
+    depends_on:
+      - doctree-postgres-slave
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+      - doctree-traefik-net
+    volumes:
+      - ../src:/usr/src/app/src
+      - ../config/app.mirror.readonly1.env:/usr/src/app/app.env
+    command: >
+        npm run start:dev
+
+  doctree-app-mirror-readonly2:
+    container_name: doctree-app-mirror-readonly2
+    hostname: app-mirror-readonly2
+    build:
+      context: ..
+      dockerfile: ./src/Dockerfile
+    ports:
+      - 3005:3000
+    env_file:
+      - ../config/app.mirror.readonly2.env
+    depends_on:
+      - doctree-postgres-slave
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+      - doctree-traefik-net
+    volumes:
+      - ../src:/usr/src/app/src
+      - ../config/app.mirror.readonly2.env:/usr/src/app/app.env
+    command: >
+        npm run start:dev
+
+volumes:
+  doctree-postgres-slave-data:
+
+networks:
+  doctree-postgres-net:
+    external: true
+  doctree-minio-net:
+    external: true
+  doctree-traefik-net:
+    external: true

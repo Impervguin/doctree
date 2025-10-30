@@ -12,16 +12,21 @@ async function bootstrap() {
   app.useGlobalInterceptors(new LoggingInterceptor());
   app.useGlobalGuards(new ReadOnlyGuard(configService));
 
+  const globalPrefix = configService.get('GLOBAL_PREFIX', '');
+
   app.enableVersioning({
     type: VersioningType.URI,
     defaultVersion: '1',
     prefix: 'api/v',
   });
 
+  app.setGlobalPrefix(globalPrefix);
+
   const documentConfigv1 = new DocumentBuilder()
     .setTitle('Doctree API')
     .setDescription('API for document hierarchy')
     .setVersion('1.0')
+    .addServer(globalPrefix)
     .build();
   
   var document = SwaggerModule.createDocument(app, documentConfigv1);
@@ -33,12 +38,13 @@ async function bootstrap() {
     ),
   }
 
-  SwaggerModule.setup('api/v1', app, v1Document);
+  SwaggerModule.setup('/api/v1', app, v1Document);
 
   const documentConfigv2 = new DocumentBuilder()
     .setTitle('Doctree API')
     .setDescription('API for document hierarchy')
     .setVersion('2.0')
+    .addServer(globalPrefix)
     .build();
   
   var document = SwaggerModule.createDocument(app, documentConfigv2);
@@ -49,10 +55,9 @@ async function bootstrap() {
       Object.entries(document.paths).filter(([p]) => p.startsWith('/api/v2') || p.startsWith('/v2')),
     ),
   }
-  SwaggerModule.setup('api/v2', app, v2Document);
+  SwaggerModule.setup('/api/v2', app, v2Document);
 
 
-  
 
   await app.listen(process.env.PORT ?? 3000);
 }

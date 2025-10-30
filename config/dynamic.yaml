@@ -77,10 +77,25 @@ http:
         - status-header-scripts
       service: status-service
 
+    mirror-api-router-get:
+      rule: "(PathPrefix(`/mirror/api/v2`) || PathPrefix(`/mirror/api/v1`)) && Method(`GET`, `HEAD`, `OPTIONS`)"
+      service: mirror-api
+      middlewares: ["app-name-header"]
+
+    mirror-api-router-write:
+      rule: "(PathPrefix(`/mirror/api/v2`) || PathPrefix(`/mirror/api/v1`)) && Method(`POST`, `PUT`, `PATCH`, `DELETE`)"
+      service: mirror-api-write
+      middlewares: ["app-name-header"]
+
+    mirror-media-router:
+      rule: "PathPrefix(`/mirror/media`)"
+      service: minio-media
+      middlewares: ["strip-mirror-media"]
+
     static-router:
       rule: "PathPrefix(`/`)"
       service: static-service
-      
+
 
   services:
     minio-media:
@@ -112,7 +127,32 @@ http:
       loadBalancer:
         servers:
           - url: "http://app-readonly2:3000"
-    
+
+    mirror-api:
+      weighted:
+        services:
+          - name: mirror-api-write
+            weight: 2
+          - name: mirror-api-read1
+            weight: 1
+          - name: mirror-api-read2
+            weight: 1
+
+    mirror-api-write:
+      loadBalancer:
+        servers:
+          - url: "http://app-mirror:3000"
+
+    mirror-api-read1:
+      loadBalancer:
+        servers:
+          - url: "http://app-mirror-readonly1:3000"
+
+    mirror-api-read2:
+      loadBalancer:
+        servers:
+          - url: "http://app-mirror-readonly2:3000"
+
     readme-service:
       loadBalancer:
         servers:
@@ -201,6 +241,10 @@ http:
       replacePathRegex:
         regex: "^/monitoring(/.*)?$"
         replacement: "$1"
+    strip-mirror-media:
+      stripPrefix:
+        prefixes:
+          - "/mirror/media"
     app-name-header:
       headers:
         customResponseHeaders:
