@@ -55,3 +55,8 @@ pnpm-debug.log*
 # Cache
 .cache
 .temp
+
+
+# pandora executable
+load-test/pandora.out
+load-test/results

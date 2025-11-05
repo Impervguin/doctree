@@ -1,0 +1,23 @@
+pools:
+  - id: example_value
+    gun:
+      type: example_value
+      target: example_value
+    ammo:
+      type: example_value
+      file: example_value
+    result:
+      type: example_value
+      destination: example_value
+
+    rps-per-instance: true_or_false
+    discard_overflow: true_or_false
+
+    rps:
+      type: example_value
+      duration: example_value
+      ops: 12345
+
+    startup:
+      type: example_value
+      times: 12345

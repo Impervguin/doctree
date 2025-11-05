@@ -3,18 +3,33 @@ http:
     media-router:
       rule: "PathPrefix(`/media`)"
       service: minio-media
-      middlewares: ["strip-media"]
+      middlewares: ["strip-media", "gzip-compress"]
 
     app-api-router-get:
       rule: "(PathPrefix(`/api/v2`) || PathPrefix(`/api/v1`)) && Method(`GET`, `HEAD`, `OPTIONS`)"
       service: api
-      middlewares: ["app-name-header"]
+      middlewares: ["app-name-header", "cache-api", "gzip-compress"]
 
     app-api-router-write:
       rule: "(PathPrefix(`/api/v2`) || PathPrefix(`/api/v1`)) && Method(`POST`, `PUT`, `PATCH`, `DELETE`)"
       service: api-write
-      middlewares: ["app-name-header"]
-      
+      middlewares: ["app-name-header", "gzip-compress"]
+
+    mirror-api-router-get:
+      rule: "(PathPrefix(`/mirror/api/v2`) || PathPrefix(`/mirror/api/v1`)) && Method(`GET`, `HEAD`, `OPTIONS`)"
+      service: mirror-api
+      middlewares: ["app-name-header", "strip-mirror", "cache-api", "gzip-compress"]
+
+    mirror-api-router-write:
+      rule: "(PathPrefix(`/mirror/api/v2`) || PathPrefix(`/mirror/api/v1`)) && Method(`POST`, `PUT`, `PATCH`, `DELETE`)"
+      service: mirror-api-write
+      middlewares: ["app-name-header", "strip-mirror", "gzip-compress"]
+    
+    mirror-media-router:
+      rule: "PathPrefix(`/mirror/media`)"
+      service: minio-media
+      middlewares: ["strip-mirror-media", "gzip-compress"]
+
     legacy-router:
       rule: "PathPrefix(`/legacy`)"
       middlewares:
@@ -25,6 +40,8 @@ http:
       rule: "PathPrefix(`/documentation`)"
       middlewares:
         - strip-docs
+        - cache-static
+        - gzip-compress
       service: readme-service
     
     readme-router:
@@ -36,38 +53,47 @@ http:
       middlewares:
         - strip-admin
         - admin-header-scripts
+        - gzip-compress
       service: admin-service
       
     management-router:
       rule: "Path(`/management`)"
       middlewares:
         - replace-management
+        - cache-static
+        - gzip-compress
       service: static-service
 
     monitoring-router:
       rule: "PathPrefix(`/monitoring`)"
       middlewares:
         - monitoring-header-scripts
+        - cache-static
+        - gzip-compress
       service: grafana-service
 
     index-static-router:
       rule: "Path(`/`)"
       middlewares:
         - replace-index
+        - cache-static
+        - gzip-compress
       service: static-service
       
     reserved-router:
       rule: "PathPrefix(`/reserved`)"
       middlewares:
         - strip-reserved
+        - cache-static
+        - gzip-compress
       service: static-service
-
     
     status-api-router:
       rule: "PathPrefix(`/api`) && HeadersRegexp(`Referer`, `.*/status.*`)"
       middlewares:
         - strip-status
         - status-header-scripts
+        - gzip-compress
       service: status-service
 
     status-router:
@@ -75,22 +101,8 @@ http:
       middlewares:
         - status-to-dashboard
         - status-header-scripts
+        - gzip-compress
       service: status-service
-
-    mirror-api-router-get:
-      rule: "(PathPrefix(`/mirror/api/v2`) || PathPrefix(`/mirror/api/v1`)) && Method(`GET`, `HEAD`, `OPTIONS`)"
-      service: mirror-api
-      middlewares: ["app-name-header"]
-
-    mirror-api-router-write:
-      rule: "(PathPrefix(`/mirror/api/v2`) || PathPrefix(`/mirror/api/v1`)) && Method(`POST`, `PUT`, `PATCH`, `DELETE`)"
-      service: mirror-api-write
-      middlewares: ["app-name-header"]
-
-    mirror-media-router:
-      rule: "PathPrefix(`/mirror/media`)"
-      service: minio-media
-      middlewares: ["strip-mirror-media"]
 
     static-router:
       rule: "PathPrefix(`/`)"
@@ -245,9 +257,37 @@ http:
       stripPrefix:
         prefixes:
           - "/mirror/media"
+    strip-mirror:
+      stripPrefix:
+        prefixes:
+          - "/mirror"
     app-name-header:
       headers:
         customResponseHeaders:
           Server: "doctree-app"
+    
+    gzip-compress:
+      compress:
+        excludedContentTypes:
+          - "application/octet-stream"
+        minResponseBodyBytes: 1024
+        
+    cache-api:
+      headers:
+        customResponseHeaders:
+          Cache-Control: "public, max-age=300"
+        accessControlAllowMethods:
+          - "GET"
+          - "HEAD"
+          - "OPTIONS"
+
+    cache-static:
+      headers:
+        customResponseHeaders:
+          Cache-Control: "public, max-age=3600" 
+        accessControlAllowMethods:
+          - "GET"
+          - "HEAD"
+          - "OPTIONS"
 
       

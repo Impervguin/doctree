@@ -1,28 +1,16 @@
 services:
-  doctree-postgres-slave:
-    container_name: doctree-postgres-slave
-    hostname: pg-slave
+  doctree-postgres-replica:
+    container_name: doctree-postgres-replica
+    hostname: pg-replica
     image: postgres:17.4-alpine3.20
-    command:
-      - "postgres"
-      - "-c"
-      - "max_connections=50"
-      - "-c"
-      - "shared_buffers=1GB"
-      - "-c"
-      - "effective_cache_size=4GB"
-      - "-c"
-      - "work_mem=16MB"
-      - "-c"
-      - "maintenance_work_mem=512MB"
-      - "-c"
-      - "hot_standby=on"
     env_file:
-      - pg-slave.env
+      - pg-replica.env
     ports:
       - 5433:5432
     volumes:
-      - ./setup-slave.sh:/usr/local/bin/setup-slave.sh
+      - doctree-postgres-replica-data:/var/lib/postgresql/data
+      - ./setup-master.sh:/usr/local/bin/setup-master.sh
+      - ./setup-subscription.sh:/usr/local/bin/setup-subscription.sh
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
@@ -39,12 +27,52 @@ services:
       - doctree-postgres-net
     entrypoint: >
       sh -c "
-        if [ ! -f /var/lib/postgresql/data/standby.signal ]; then
-          echo 'Setting up slave replication...';
-          /usr/local/bin/setup-slave.sh;
-        fi;
-        exec docker-entrypoint.sh postgres -c 'max_connections=50' -c 'shared_buffers=1GB' -c 'effective_cache_size=4GB' -c 'work_mem=16MB' -c 'maintenance_work_mem=512MB' -c 'hot_standby=on'
+        exec docker-entrypoint.sh postgres -c 'max_connections=50' -c 'shared_buffers=1GB' -c 'effective_cache_size=4GB' -c 'work_mem=16MB' -c 'maintenance_work_mem=512MB' -c 'wal_level=logical' -c 'max_wal_senders=10' -c 'max_replication_slots=10' -c 'listen_addresses=*' &
+        
+        POSTGRES_PID=$!
+        # Wait for PostgreSQL to start
+        until pg_isready -U $POSTGRES_USER -d $POSTGRES_DB; do
+          echo 'Waiting for PostgreSQL to start...'
+          sleep 2
+        done
+        
+        # Some additional time for initialization
+        sleep 5
+        
+        echo 'PostgreSQL is ready. Setting up replication...'
+        
+        # Run setup scripts
+        if [ -f /var/lib/postgresql/data/postgresql.conf ]; then
+          echo 'Setting up master replication...'
+          /usr/local/bin/setup-master.sh
+          
+          echo 'Setting up subscription...'
+          /usr/local/bin/setup-subscription.sh
+        fi
+        
+        wait $POSTGRES_PID
       "
+      
+  doctree-postgres-migrator-replica:
+    container_name: doctree-postgres-migrator-replica
+    hostname: pg-migrator-replica
+    build:
+      context: ..
+      dockerfile: pkg/pgmigrator/Dockerfile
+    environment:
+      - GOOSE_MIGRATION_DIR=/migrations
+    env_file:
+      - goose.replica.env
+    command:
+      - "goose"
+      - "up"
+    volumes:
+      - ../migrations:/migrations
+    depends_on:
+      doctree-postgres-replica:
+        condition: service_healthy
+    networks:
+      - doctree-postgres-net
 
   doctree-app-mirror:
     container_name: doctree-app-mirror
@@ -57,7 +85,7 @@ services:
     env_file:
       - ../config/app.mirror.env
     depends_on:
-      - doctree-postgres-slave
+      - doctree-postgres-replica
     networks:
       - doctree-postgres-net
       - doctree-minio-net
@@ -79,7 +107,7 @@ services:
     env_file:
       - ../config/app.mirror.readonly1.env
     depends_on:
-      - doctree-postgres-slave
+      - doctree-postgres-replica
     networks:
       - doctree-postgres-net
       - doctree-minio-net
@@ -101,7 +129,7 @@ services:
     env_file:
       - ../config/app.mirror.readonly2.env
     depends_on:
-      - doctree-postgres-slave
+      - doctree-postgres-replica
     networks:
       - doctree-postgres-net
       - doctree-minio-net
@@ -113,7 +141,7 @@ services:
         npm run start:dev
 
 volumes:
-  doctree-postgres-slave-data:
+  doctree-postgres-replica-data:
 
 networks:
   doctree-postgres-net:

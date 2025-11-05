@@ -1,0 +1,23 @@
+pools:
+  - id: flat-high                   
+    gun:
+      type: http                     
+      target: 127.0.0.1:80         
+    ammo:
+      type: http/json
+      file: ./ammo/nodes.ammo
+    result:
+      type: phout
+      destination: ./results/nodes.phout
+
+    rps-per-instance: true
+    discard_overflow: false
+
+    rps:
+      type: const
+      duration: 5s
+      ops: 3
+
+    startup:
+      type: once
+      times: 1000

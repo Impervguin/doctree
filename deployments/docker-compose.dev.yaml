@@ -104,26 +104,6 @@ services:
     container_name: doctree-postgres
     hostname: pg
     image: postgres:17.4-alpine3.20
-    command:
-      - "postgres"
-      - "-c"
-      - "max_connections=50"
-      - "-c"
-      - "shared_buffers=1GB"
-      - "-c"
-      - "effective_cache_size=4GB"
-      - "-c"
-      - "work_mem=16MB"
-      - "-c"
-      - "maintenance_work_mem=512MB"
-      - "-c"
-      - "wal_level=logical"
-      - "-c"
-      - "max_wal_senders=10"
-      - "-c"
-      - "max_replication_slots=10"
-      - "-c"
-      - "listen_addresses=*"
     env_file:
       - pg.env
     ports:
@@ -131,6 +111,7 @@ services:
     volumes:
       - doctree-postgres-data:/var/lib/postgresql/data
       - ./setup-master.sh:/usr/local/bin/setup-master.sh
+      - ./setup-subscription.sh:/usr/local/bin/setup-subscription.sh
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
@@ -147,11 +128,30 @@ services:
       - doctree-postgres-net
     entrypoint: >
       sh -c "
+        exec docker-entrypoint.sh postgres -c 'max_connections=50' -c 'shared_buffers=1GB' -c 'effective_cache_size=4GB' -c 'work_mem=16MB' -c 'maintenance_work_mem=512MB' -c 'wal_level=logical' -c 'max_wal_senders=10' -c 'max_replication_slots=10' -c 'listen_addresses=*' &
+        
+        POSTGRES_PID=$!
+        # Wait for PostgreSQL to start
+        until pg_isready -U $POSTGRES_USER -d $POSTGRES_DB; do
+          echo 'Waiting for PostgreSQL to start...'
+          sleep 2
+        done
+        
+        # Some additional time for initialization
+        sleep 5
+        
+        echo 'PostgreSQL is ready. Setting up replication...'
+        
+        # Run setup scripts
         if [ -f /var/lib/postgresql/data/postgresql.conf ]; then
-          echo 'Setting up master replication...';
-          /usr/local/bin/setup-master.sh;
-        fi;
-        exec docker-entrypoint.sh postgres -c 'max_connections=50' -c 'shared_buffers=1GB' -c 'effective_cache_size=4GB' -c 'work_mem=16MB' -c 'maintenance_work_mem=512MB' -c 'wal_level=logical' -c 'max_wal_senders=10' -c 'max_replication_slots=10' -c 'listen_addresses=*'
+          echo 'Setting up master replication...'
+          /usr/local/bin/setup-master.sh
+          
+          echo 'Setting up subscription...'
+          /usr/local/bin/setup-subscription.sh
+        fi
+        
+        wait $POSTGRES_PID
       "
     
   doctree-pgadmin:

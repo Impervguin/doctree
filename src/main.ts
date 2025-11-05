@@ -20,8 +20,6 @@ async function bootstrap() {
     prefix: 'api/v',
   });
 
-  app.setGlobalPrefix(globalPrefix);
-
   const documentConfigv1 = new DocumentBuilder()
     .setTitle('Doctree API')
     .setDescription('API for document hierarchy')
