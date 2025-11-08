@@ -8,11 +8,13 @@ deployments/config/*.yaml
 
 # Dependencies
 /node_modules
+node_modules
 /.pnp
 .pnp.js
 
 # Build files
 /dist
+dist
 /coverage
 *.tmp
 *.bak

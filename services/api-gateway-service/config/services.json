@@ -1,0 +1,30 @@
+[
+  {
+    "name": "auth",
+    "versions": ["v1", "v2"],
+    "servers": [
+      { "host": "localhost", "port": 3001 }
+    ]
+  },
+  {
+    "name": "tree",
+    "versions": ["v1", "v2"],
+    "servers": [
+      { "host": "localhost", "port": 3002 }
+    ]
+  },
+  {
+    "name": "files",
+    "versions": ["v1", "v2"],
+    "servers": [
+      { "host": "localhost", "port": 3003 }
+    ]
+  },
+  {
+    "name": "documents",
+    "versions": ["v1", "v2"],
+    "servers": [
+      { "host": "localhost", "port": 3004 }
+    ]
+  }
+]

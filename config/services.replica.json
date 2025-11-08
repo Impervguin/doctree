@@ -1,0 +1,34 @@
+[
+    {
+        "name": "auth-replica",
+        "versions": ["v1", "v2"],
+        "servers": [
+            { "host": "auth-replica", "port": 3000 },
+            { "host": "localhost", "port": 80 }
+        ]
+    },
+    {
+        "name": "tree-replica",
+        "versions": ["v1", "v2"],
+        "servers": [
+            { "host": "tree-replica", "port": 3000 },
+            { "host": "localhost", "port": 80 }
+        ]
+    },
+    {
+        "name": "files-replica",
+        "versions": ["v1", "v2"],
+        "servers": [
+            { "host": "files-replica", "port": 3000 },
+            { "host": "localhost", "port": 80 }
+        ]
+    },
+    {
+        "name": "documents-replica",
+        "versions": ["v1", "v2"],
+        "servers": [
+            { "host": "documents-replica", "port": 3000 },
+            { "host": "localhost", "port": 80 }
+        ]
+    }
+]

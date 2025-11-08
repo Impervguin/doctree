@@ -74,71 +74,230 @@ services:
     networks:
       - doctree-postgres-net
 
-  doctree-app-mirror:
-    container_name: doctree-app-mirror
-    hostname: app-mirror
+  doctree-auth-replica:
+    container_name: doctree-auth-replica
+    hostname: auth-replica
     build:
       context: ..
-      dockerfile: ./src/Dockerfile
-    ports:
-      - 3003:3000
+      dockerfile: ./services/auth-service/Dockerfile
     env_file:
-      - ../config/app.mirror.env
+      - ../config/auth.replica.env
     depends_on:
       - doctree-postgres-replica
     networks:
       - doctree-postgres-net
       - doctree-minio-net
-      - doctree-traefik-net
     volumes:
-      - ../src:/usr/src/app/src
-      - ../config/app.mirror.env:/usr/src/app/app.env
-    command: >
-        npm run start:dev
-
-  doctree-app-mirror-readonly1:
-    container_name: doctree-app-mirror-readonly1
-    hostname: app-mirror-readonly1
+      - ../config/auth.replica.env:/usr/src/app/.env
+      - ../services/protos:/usr/src/protos
+  
+  doctree-auth-replica-readonly1:
+    container_name: doctree-auth-replica-readonly1
+    hostname: auth-replica-readonly1
     build:
       context: ..
-      dockerfile: ./src/Dockerfile
-    ports:
-      - 3004:3000
+      dockerfile: ./services/auth-service/Dockerfile
     env_file:
-      - ../config/app.mirror.readonly1.env
+      - ../config/auth.readonly1.replica.env
     depends_on:
       - doctree-postgres-replica
     networks:
       - doctree-postgres-net
       - doctree-minio-net
-      - doctree-traefik-net
     volumes:
-      - ../src:/usr/src/app/src
-      - ../config/app.mirror.readonly1.env:/usr/src/app/app.env
-    command: >
-        npm run start:dev
-
-  doctree-app-mirror-readonly2:
-    container_name: doctree-app-mirror-readonly2
-    hostname: app-mirror-readonly2
+      - ../config/auth.readonly1.replica.env:/usr/src/app/.env
+      - ../services/protos:/usr/src/protos
+  
+  doctree-auth-replica-readonly2:
+    container_name: doctree-auth-replica-readonly2
+    hostname: auth-replica-readonly2
     build:
       context: ..
-      dockerfile: ./src/Dockerfile
-    ports:
-      - 3005:3000
+      dockerfile: ./services/auth-service/Dockerfile
     env_file:
-      - ../config/app.mirror.readonly2.env
+      - ../config/auth.readonly2.replica.env
     depends_on:
       - doctree-postgres-replica
     networks:
       - doctree-postgres-net
       - doctree-minio-net
-      - doctree-traefik-net
     volumes:
-      - ../src:/usr/src/app/src
-      - ../config/app.mirror.readonly2.env:/usr/src/app/app.env
-    command: >
-        npm run start:dev
+      - ../config/auth.readonly2.replica.env:/usr/src/app/.env
+      - ../services/protos:/usr/src/protos
+  
+  doctree-tree-replica:
+    container_name: doctree-tree-replica
+    hostname: tree-replica
+    build:
+      context: ..
+      dockerfile: ./services/tree-service/Dockerfile
+    env_file:
+      - ../config/tree.replica.env
+    depends_on:
+      - doctree-postgres-replica
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+    volumes:
+      - ../config/tree.replica.env:/usr/src/app/.env
+      - ../services/protos:/usr/src/protos
+  
+  doctree-tree-replica-readonly1:
+    container_name: doctree-tree-replica-readonly1
+    hostname: tree-replica-readonly1
+    build:
+      context: ..
+      dockerfile: ./services/tree-service/Dockerfile
+    env_file:
+      - ../config/tree.readonly1.replica.env
+    depends_on:
+      - doctree-postgres-replica
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+    volumes:
+      - ../config/tree.readonly1.replica.env:/usr/src/app/.env
+      - ../services/protos:/usr/src/protos
+  
+  doctree-tree-replica-readonly2:
+    container_name: doctree-tree-replica-readonly2
+    hostname: tree-replica-readonly2
+    build:
+      context: ..
+      dockerfile: ./services/tree-service/Dockerfile
+    env_file:
+      - ../config/tree.readonly2.replica.env
+    depends_on:
+      - doctree-postgres-replica
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+    volumes:
+      - ../config/tree.readonly2.replica.env:/usr/src/app/.env
+      - ../services/protos:/usr/src/protos
+  
+  doctree-files-replica:
+    container_name: doctree-files-replica
+    hostname: files-replica
+    build:
+      context: ..
+      dockerfile: ./services/files-service/Dockerfile
+    env_file:
+      - ../config/files.replica.env
+    depends_on:
+      - doctree-postgres-replica
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+    volumes:
+      - ../config/files.replica.env:/usr/src/app/.env
+      - ../services/protos:/usr/src/protos
+  
+  doctree-files-replica-readonly1:
+    container_name: doctree-files-replica-readonly1
+    hostname: files-replica-readonly1
+    build:
+      context: ..
+      dockerfile: ./services/files-service/Dockerfile
+    env_file:
+      - ../config/files.readonly1.replica.env
+    depends_on:
+      - doctree-postgres-replica
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+    volumes:
+      - ../config/files.readonly1.replica.env:/usr/src/app/.env
+      - ../services/protos:/usr/src/protos
+  
+  doctree-files-replica-readonly2:
+    container_name: doctree-files-replica-readonly2
+    hostname: files-replica-readonly2
+    build:
+      context: ..
+      dockerfile: ./services/files-service/Dockerfile
+    env_file:
+      - ../config/files.readonly2.replica.env
+    depends_on:
+      - doctree-postgres-replica
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+    volumes:
+      - ../config/files.readonly2.replica.env:/usr/src/app/.env
+      - ../services/protos:/usr/src/protos
+  
+  doctree-documents-replica:
+    container_name: doctree-documents-replica
+    hostname: documents-replica
+    build:
+      context: ..
+      dockerfile: ./services/documents-service/Dockerfile
+    env_file:
+      - ../config/documents.replica.env
+    depends_on:
+      - doctree-postgres-replica
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+    volumes:
+      - ../config/documents.replica.env:/usr/src/app/.env
+      - ../services/protos:/usr/src/protos
+  
+  doctree-documents-replica-readonly1:
+    container_name: doctree-documents-replica-readonly1
+    hostname: documents-replica-readonly1
+    build:
+      context: ..
+      dockerfile: ./services/documents-service/Dockerfile
+    env_file:
+      - ../config/documents.readonly1.replica.env
+    depends_on:
+      - doctree-postgres-replica
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+    volumes:
+      - ../config/documents.readonly1.replica.env:/usr/src/app/.env
+      - ../services/protos:/usr/src/protos
+  
+  doctree-documents-replica-readonly2:
+    container_name: doctree-documents-replica-readonly2
+    hostname: documents-replica-readonly2
+    build:
+      context: ..
+      dockerfile: ./services/documents-service/Dockerfile
+    env_file:
+      - ../config/documents.readonly2.replica.env
+    depends_on:
+      - doctree-postgres-replica
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+    volumes:
+      - ../config/documents.readonly2.replica.env:/usr/src/app/.env
+      - ../services/protos:/usr/src/protos
+    
+  doctree-gateway-replica:
+    container_name: doctree-gateway-replica
+    hostname: gateway-replica
+    build:
+      context: ..
+      dockerfile: ./services/api-gateway-service/Dockerfile
+    env_file:
+      - ../config/gateway.replica.env
+    depends_on:
+      - doctree-postgres-replica
+      - doctree-tree-replica
+      - doctree-files-replica
+      - doctree-documents-replica
+      - doctree-auth-replica
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+    volumes:
+      - ../config/gateway.replica.env:/usr/src/app/.env
+      - ../config/services.replica.json:/usr/src/app/config/services.json
 
 volumes:
   doctree-postgres-replica-data:

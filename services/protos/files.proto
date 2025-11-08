@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package files;
+
+service FileReadService {
+  rpc GetFileInfo(GetFileInfoRequest) returns (StoredFileInfo);
+  rpc DownloadFile(DownloadFileRequest) returns (FileBuffer);
+}
+
+service FileWriteService {
+  rpc UploadFile(UploadFileRequest) returns (StoredFileInfo);
+  rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse);
+}
+
+
+
+message GetFileInfoRequest {
+  string file_id = 1;
+}
+
+message UploadFileRequest {
+  string filebucket = 1;
+  string filename = 2;
+  bytes buffer = 3;
+  uint32 size = 4;
+  string filedir = 5;
+}
+
+message DownloadFileRequest {
+  string file_id = 1;
+}
+
+message StoredFileInfo {
+  string id = 1;
+  string title = 2;
+  optional string description = 3;
+  string filebucket = 4;
+  string filekey = 5;
+  string created_at = 6;
+  string updated_at = 7;
+  optional string deleted_at = 8;
+}
+
+message FileBuffer {
+  string id = 1;
+  string filename = 2;
+  bytes buffer = 3;
+}
+
+message DeleteFileRequest {
+  string file_id = 1;
+}
+
+message DeleteFileResponse {
+  bool success = 1;
+}

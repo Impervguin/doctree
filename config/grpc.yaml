@@ -1,0 +1,120 @@
+http:
+  routers:
+    files-grpc-router-write:
+      rule: "PathPrefix(`/{path:(files[.]FileWrite(.*))}`) && Headers(`Content-Type`, `application/grpc`)"
+      entryPoints: ["grpc"]
+      service: files-grpc-write
+      middlewares: ["gzip-compress"]
+    
+    files-grpc-router-read:
+      rule: "PathPrefix(`/{path:(files[.]FileRead(.*))}`) && Headers(`Content-Type`, `application/grpc`)"
+      entryPoints: ["grpc"]
+      service: files-grpc
+      middlewares: ["gzip-compress"]
+    
+    auth-grpc-router-write:
+      rule: "PathPrefix(`/{path:(auth[.]AuthWrite(.*))}`) && Headers(`Content-Type`, `application/grpc`)"
+      entryPoints: ["grpc"]
+      service: auth-grpc-write
+      middlewares: ["gzip-compress"]
+    
+    auth-grpc-router-read:
+      rule: "PathPrefix(`/{path:(auth[.]AuthRead(.*))}`) && Headers(`Content-Type`, `application/grpc`)"
+      entryPoints: ["grpc"]
+      service: auth-grpc
+      middlewares: ["gzip-compress"]
+    
+    tree-grpc-router-write:
+      rule: "PathPrefix(`/{path:(tree[.]TreeWrite(.*))}`)) && Headers(`Content-Type`, `application/grpc`)"
+      entryPoints: ["grpc"]
+      service: tree-grpc-write
+      middlewares: ["gzip-compress"]
+    
+    tree-grpc-router-read:
+      rule: "PathPrefix(`/{path:(tree[.]TreeRead(.*))}`) && Headers(`Content-Type`, `application/grpc`)"
+      entryPoints: ["grpc"]
+      service: tree-grpc
+      middlewares: ["gzip-compress"]
+  
+  services:
+    files-grpc:
+      weighted:
+        services:
+          - name: files-grpc-write
+            weight: 2
+          - name: files-grpc-readonly1
+            weight: 1
+          - name: files-grpc-readonly2
+            weight: 1
+          
+    files-grpc-write:
+      loadBalancer:
+        servers:
+          - url: "h2c://files:50050"
+    
+    files-grpc-readonly1:
+      loadBalancer:
+        servers:
+          - url: "h2c://files-readonly1:50050"
+    
+    files-grpc-readonly2:
+      loadBalancer:
+        servers:
+          - url: "h2c://files-readonly2:50050"
+    
+    auth-grpc:
+      weighted:
+        services:
+          - name: auth-grpc-write
+            weight: 2
+          - name: auth-grpc-readonly1
+            weight: 1
+          - name: auth-grpc-readonly2
+            weight: 1
+
+    auth-grpc-write:
+      loadBalancer:
+        servers:
+          - url: "h2c://auth:50050"
+    
+    auth-grpc-readonly1:
+      loadBalancer:
+        servers:
+          - url: "h2c://auth-readonly1:50050"
+    
+    auth-grpc-readonly2:
+      loadBalancer:
+        servers:
+          - url: "h2c://auth-readonly2:50050"
+    
+    tree-grpc:
+      weighted:
+        services:
+          - name: tree-grpc-write
+            weight: 2
+          - name: tree-grpc-readonly1
+            weight: 1
+          - name: tree-grpc-readonly2
+            weight: 1
+
+    tree-grpc-write:
+      loadBalancer:
+        servers:
+          - url: "h2c://tree:50050"
+    
+    tree-grpc-readonly1:
+      loadBalancer:
+        servers:
+          - url: "h2c://tree-readonly1:50050"
+    
+    tree-grpc-readonly2:
+      loadBalancer:
+        servers:
+          - url: "h2c://tree-readonly2:50050"
+    
+  middlewares:
+    gzip-compress:
+      compress:
+        excludedContentTypes:
+          - "application/octet-stream"
+        minResponseBodyBytes: 1024  

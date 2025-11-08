@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package auth;
+
+service AuthReadService {
+  rpc VerifyAccessToken(VerifyAccessTokenRequest) returns (VerifyAccessTokenResponse);
+  rpc GetUserPermissions(GetUserPermissionsRequest) returns (UserPermissions);
+}
+
+message GetUserPermissionsRequest {
+  string user_id = 1;
+}
+
+message UserPermissions {
+  repeated string permissions = 1;
+}
+
+message VerifyAccessTokenRequest {
+  string token = 1;
+}
+
+message UserInfo {
+  string id = 1; // User id
+  string username = 2; // User username
+}
+
+message VerifyAccessTokenResponse {
+  bool valid = 1;
+  optional UserInfo user = 2;
+}

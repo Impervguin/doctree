@@ -1,0 +1,189 @@
+http:
+  routers:
+    app-api-swagger-mirror-router:
+      rule: "PathPrefix(`/mirror/{path:(api/v[0-9]+(/?))}`)"
+      service: api-gateway-mirror
+      middlewares: ["app-name-header", "cache-api", "gzip-compress", "strip-mirror"]
+    
+    auth-api-mirror-router-write:
+      rule: "PathPrefix(`/mirror/{path:(api/v[0-9]+/auth(/?)(.*))}`) && Method(`POST`, `PUT`, `PATCH`, `DELETE`)"
+      service: api-auth-write-mirror
+      middlewares: ["app-name-header", "cache-api", "gzip-compress", "strip-mirror"]
+    
+    auth-api-mirror-router-read:
+      rule: "PathPrefix(`/mirror/{path:(api/v[0-9]+/auth(/?)(.*))}`) && Method(`GET`, `HEAD`, `OPTIONS`)"
+      service: api-auth-mirror
+      middlewares: ["app-name-header", "cache-api", "gzip-compress", "strip-mirror"]
+    
+    tree-api-mirror-router-write:
+      rule: "PathPrefix(`/mirror/{path:(api/v[0-9]+/tree(/?)(.*))}`) && Method(`POST`, `PUT`, `PATCH`, `DELETE`)"
+      service: api-tree-write-mirror
+      middlewares: ["app-name-header", "cache-api", "gzip-compress", "strip-mirror"]
+    
+    tree-api-mirror-router-read:
+      rule: "PathPrefix(`/mirror/{path:(api/v[0-9]+/tree(/?)(.*))}`) && Method(`GET`, `HEAD`, `OPTIONS`)"
+      service: api-tree-mirror
+      middlewares: ["app-name-header", "cache-api", "gzip-compress", "strip-mirror"]
+    
+    files-api-mirror-router-read:
+      rule: "PathPrefix(`/mirror/{path:(api/v[0-9]+/files(/?)(.*))}`) && Method(`GET`, `HEAD`, `OPTIONS`)"
+      service: api-files-mirror
+      middlewares: ["app-name-header", "cache-api", "gzip-compress", "strip-mirror"]
+    
+    files-api-mirror-router-write:
+      rule: "PathPrefix(`/mirror/{path:(api/v[0-9]+/files(/?)(.*))}`) && Method(`POST`, `PUT`, `PATCH`, `DELETE`)"
+      service: api-files-write-mirror
+      middlewares: ["app-name-header", "cache-api", "gzip-compress", "strip-mirror"]
+    
+    documents-api-mirror-router-write:
+      rule: "PathPrefix(`/mirror/{path:(api/v[0-9]+/docs(/?)(.*))}`) && Method(`POST`, `PUT`, `PATCH`, `DELETE`)"
+      service: api-documents-write-mirror
+      middlewares: ["app-name-header", "cache-api", "gzip-compress", "strip-mirror"]
+    
+    documents-api-mirror-router-read:
+      rule: "PathPrefix(`/mirror/{path:(api/v[0-9]+/docs(/?)(.*))}`) && Method(`GET`, `HEAD`, `OPTIONS`)"
+      service: api-documents-mirror
+      middlewares: ["app-name-header", "cache-api", "gzip-compress", "strip-mirror"]
+
+  services: 
+    api-gateway-mirror:
+      loadBalancer:
+        servers:
+          - url: "http://gateway-replica:3000"
+      
+    api-auth-mirror:
+      weighted:
+        services:
+          - name: api-auth-write-mirror
+            weight: 2
+          - name: api-auth-readonly1-mirror
+            weight: 1
+          - name: api-auth-readonly2-mirror
+            weight: 1
+    
+    api-auth-write-mirror:
+      loadBalancer:
+        servers:
+          - url: "http://auth-replica:3000"
+    
+    api-auth-readonly1-mirror:
+      loadBalancer:
+        servers:
+          - url: "http://auth-replica-readonly1:3000"
+    
+    api-auth-readonly2-mirror:
+      loadBalancer:
+        servers:
+          - url: "http://auth-replica-readonly2:3000"
+    
+    api-tree-mirror:
+      weighted:
+        services:
+          - name: api-tree-write-mirror
+            weight: 2
+          - name: api-tree-readonly1-mirror
+            weight: 1
+          - name: api-tree-readonly2-mirror
+            weight: 1
+    
+    api-tree-write-mirror:
+      loadBalancer:
+        servers:
+          - url: "http://tree-replica:3000"
+    
+    api-tree-readonly1-mirror:
+      loadBalancer:
+        servers:
+          - url: "http://tree-replica-readonly1:3000"
+    
+    api-tree-readonly2-mirror:
+      loadBalancer:
+        servers:
+          - url: "http://tree-replica-readonly2:3000"
+    
+    api-files-mirror:
+      weighted:
+        services:
+          - name: api-files-write-mirror
+            weight: 2
+          - name: api-files-readonly1-mirror
+            weight: 1
+          - name: api-files-readonly2-mirror
+            weight: 1
+    
+    api-files-write-mirror:
+      loadBalancer:
+        servers:
+          - url: "http://files-replica:3000"
+    
+    api-files-readonly1-mirror:
+      loadBalancer:
+        servers:
+          - url: "http://files-replica-readonly1:3000"
+    
+    api-files-readonly2-mirror:
+      loadBalancer:
+        servers:  
+          - url: "http://files-replica-readonly2:3000"
+    
+    api-documents-mirror:
+      weighted:
+        services:
+          - name: api-documents-write-mirror
+            weight: 2
+          - name: api-documents-readonly1-mirror
+            weight: 1
+          - name: api-documents-readonly2-mirror
+            weight: 1
+    
+    api-documents-write-mirror:
+      loadBalancer:
+        servers:
+          - url: "http://documents-replica:3000"
+    
+    api-documents-readonly1-mirror:
+      loadBalancer:
+        servers:
+          - url: "http://documents-replica-readonly1:3000"
+    
+    api-documents-readonly2-mirror:  
+      loadBalancer:
+        servers:
+          - url: "http://documents-replica-readonly2:3000"
+
+  middlewares:
+    strip-mirror:
+      stripPrefix:
+        prefixes:
+          - "/mirror"
+
+    app-name-header:
+      headers:
+        customResponseHeaders:
+          Server: "doctree-app"
+    
+    gzip-compress:
+      compress:
+        excludedContentTypes:
+          - "application/octet-stream"
+        minResponseBodyBytes: 1024
+        
+    cache-api:
+      headers:
+        customResponseHeaders:
+          Cache-Control: "public, max-age=300"
+        accessControlAllowMethods:
+          - "GET"
+          - "HEAD"
+          - "OPTIONS"
+
+    cache-static:
+      headers:
+        customResponseHeaders:
+          Cache-Control: "public, max-age=3600" 
+        accessControlAllowMethods:
+          - "GET"
+          - "HEAD"
+          - "OPTIONS"
+
+      

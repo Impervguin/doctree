@@ -1,0 +1,419 @@
+services:
+  doctree-auth:
+    container_name: doctree-auth
+    hostname: auth
+    build:
+      context: ..
+      dockerfile: ./services/auth-service/Dockerfile
+    ports:
+      - 3001:3000
+    env_file:
+      - ../config/auth.env
+    depends_on:
+      - doctree-postgres
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+    volumes:
+      - ../config/auth.env:/usr/src/app/.env
+      - ../services/protos:/usr/src/protos
+  
+  doctree-auth-readonly1:
+    container_name: doctree-auth-readonly1
+    hostname: auth-readonly1
+    build:
+      context: ..
+      dockerfile: ./services/auth-service/Dockerfile
+    env_file:
+      - ../config/auth.readonly1.env
+    depends_on:
+      - doctree-postgres
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+    volumes:
+      - ../config/auth.readonly1.env:/usr/src/app/.env
+      - ../services/protos:/usr/src/protos 
+  
+  doctree-auth-readonly2:
+    container_name: doctree-auth-readonly2
+    hostname: auth-readonly2
+    build:
+      context: ..
+      dockerfile: ./services/auth-service/Dockerfile
+    env_file:
+      - ../config/auth.readonly2.env
+    depends_on:
+      - doctree-postgres
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+    volumes:
+      - ../config/auth.readonly2.env:/usr/src/app/.env
+      - ../services/protos:/usr/src/protos
+  
+
+  doctree-tree:
+    container_name: doctree-tree
+    hostname: tree
+    build:
+      context: ..
+      dockerfile: ./services/tree-service/Dockerfile
+    ports:
+      - 3002:3000
+    env_file:
+      - ../config/tree.env
+    depends_on:
+      - doctree-postgres
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+    volumes:
+      - ../config/tree.env:/usr/src/app/.env
+      - ../services/protos:/usr/src/protos
+  
+  doctree-tree-readonly1:
+    container_name: doctree-tree-readonly1
+    hostname: tree-readonly1
+    build:
+      context: ..
+      dockerfile: ./services/tree-service/Dockerfile
+    env_file:
+      - ../config/tree.readonly1.env
+    depends_on:
+      - doctree-postgres
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+    volumes:
+      - ../config/tree.readonly1.env:/usr/src/app/.env
+      - ../services/protos:/usr/src/protos 
+  
+  doctree-tree-readonly2:
+    container_name: doctree-tree-readonly2
+    hostname: tree-readonly2
+    build:
+      context: ..
+      dockerfile: ./services/tree-service/Dockerfile
+    env_file:
+      - ../config/tree.readonly2.env
+    depends_on:
+      - doctree-postgres
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+    volumes:
+      - ../config/tree.readonly2.env:/usr/src/app/.env
+      - ../services/protos:/usr/src/protos
+  
+  doctree-files:
+    container_name: doctree-files
+    hostname: files
+    build:
+      context: ..
+      dockerfile: ./services/files-service/Dockerfile
+    ports:
+      - 3003:3000
+    env_file:
+      - ../config/files.env
+    depends_on:
+      - doctree-postgres
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+    volumes:
+      - ../config/files.env:/usr/src/app/.env
+      - ../services/protos:/usr/src/protos
+  
+  doctree-files-readonly1:
+    container_name: doctree-files-readonly1
+    hostname: files-readonly1
+    build:
+      context: ..
+      dockerfile: ./services/files-service/Dockerfile
+    env_file:
+      - ../config/files.readonly1.env
+    depends_on:
+      - doctree-postgres
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+    volumes:
+      - ../config/files.readonly1.env:/usr/src/app/.env
+      - ../services/protos:/usr/src/protos
+  
+
+  doctree-files-readonly2:
+    container_name: doctree-files-readonly2
+    hostname: files-readonly2
+    build:
+      context: ..
+      dockerfile: ./services/files-service/Dockerfile
+    env_file:
+      - ../config/files.readonly2.env
+    depends_on:
+      - doctree-postgres
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+    volumes:
+      - ../config/files.readonly2.env:/usr/src/app/.env
+      - ../services/protos:/usr/src/protos
+  
+  doctree-documents:
+    container_name: doctree-documents
+    hostname: documents
+    build:
+      context: ..
+      dockerfile: ./services/documents-service/Dockerfile
+    ports:
+      - 3004:3000
+    env_file:
+      - ../config/documents.env
+    depends_on:
+      - doctree-postgres
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+    volumes:
+      - ../config/documents.env:/usr/src/app/.env
+      - ../services/protos:/usr/src/protos
+  
+  doctree-documents-readonly1:
+    container_name: doctree-documents-readonly1
+    hostname: documents-readonly1
+    build:
+      context: ..
+      dockerfile: ./services/documents-service/Dockerfile
+    env_file:
+      - ../config/documents.readonly1.env
+    depends_on:
+      - doctree-postgres
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+    volumes:
+      - ../config/documents.readonly1.env:/usr/src/app/.env
+      - ../services/protos:/usr/src/protos
+  
+  doctree-documents-readonly2:
+    container_name: doctree-documents-readonly2
+    hostname: documents-readonly2
+    build:
+      context: ..
+      dockerfile: ./services/documents-service/Dockerfile
+    env_file:
+      - ../config/documents.readonly2.env
+    depends_on:
+      - doctree-postgres
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+    volumes:
+      - ../config/documents.readonly2.env:/usr/src/app/.env
+      - ../services/protos:/usr/src/protos
+  
+
+  doctree-gateway:
+    container_name: doctree-gateway
+    hostname: gateway
+    build:
+      context: ..
+      dockerfile: ./services/api-gateway-service/Dockerfile
+    ports:
+      - 3000:3000
+    env_file:
+      - ../config/gateway.env
+    depends_on:
+      - doctree-postgres
+      - doctree-tree
+      - doctree-files
+      - doctree-documents
+      - doctree-auth
+    networks:
+      - doctree-postgres-net
+      - doctree-minio-net
+    volumes:
+      - ../config/gateway.env:/usr/src/app/.env
+      - ../config/services.json:/usr/src/app/config/services.json
+  
+  doctree-traefik:
+    container_name: doctree-traefik
+    hostname: traefik
+    image: traefik:v2.10
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080" 
+    volumes:
+      - ../config/traefik.yaml:/etc/traefik/traefik.yml:ro
+      - ../config/http.yaml:/etc/traefik/configs/http.yaml:ro
+      - ../config/http.replica.yaml:/etc/traefik/configs/http.replica.yaml:ro
+      - ../config/grpc.replica.yaml:/etc/traefik/configs/grpc.replica.yaml:ro
+      - ../config/grpc.yaml:/etc/traefik/configs/grpc.yaml:ro
+    networks:
+      - doctree-minio-net
+      - doctree-traefik-net
+    
+
+  doctree-postgres:
+    container_name: doctree-postgres
+    hostname: pg
+    image: postgres:17.4-alpine3.20
+    env_file:
+      - pg.env
+    ports:
+      - 5432:5432
+    volumes:
+      - doctree-postgres-data:/var/lib/postgresql/data
+      - ./setup-master.sh:/usr/local/bin/setup-master.sh
+      - ./setup-subscription.sh:/usr/local/bin/setup-subscription.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+    networks:
+      - doctree-postgres-net
+    entrypoint: >
+      sh -c "
+        exec docker-entrypoint.sh postgres -c 'max_connections=100' -c 'shared_buffers=1GB' -c 'effective_cache_size=4GB' -c 'work_mem=16MB' -c 'maintenance_work_mem=512MB' -c 'wal_level=logical' -c 'max_wal_senders=10' -c 'max_replication_slots=10' -c 'listen_addresses=*' &
+        
+        POSTGRES_PID=$!
+        # Wait for PostgreSQL to start
+        until pg_isready -U $POSTGRES_USER -d $POSTGRES_DB; do
+          echo 'Waiting for PostgreSQL to start...'
+          sleep 2
+        done
+        
+        # Some additional time for initialization
+        sleep 5
+        
+        echo 'PostgreSQL is ready. Setting up replication...'
+        
+        # Run setup scripts
+        if [ -f /var/lib/postgresql/data/postgresql.conf ]; then
+          echo 'Setting up master replication...'
+          /usr/local/bin/setup-master.sh
+          
+          echo 'Setting up subscription...'
+          /usr/local/bin/setup-subscription.sh
+        fi
+        
+        wait $POSTGRES_PID
+      "
+  
+  doctree-minio:
+    container_name: doctree-minio
+    hostname: minio
+    image: minio/minio:RELEASE.2025-06-13T11-33-47Z
+    command: server --console-address ":${MINIO_CONSOLE_PORT}" --address ":${MINIO_PORT}" /data
+    env_file:
+      - minio.env
+    ports:
+      - ${MINIO_PORT}:${MINIO_PORT}
+      - ${MINIO_CONSOLE_PORT}:${MINIO_CONSOLE_PORT}
+    volumes:
+      - doctree-minio-data:/data
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:${MINIO_PORT}/minio/health/live"
+        ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - doctree-minio-net
+  
+  doctree-postgres-migrator:
+    container_name: doctree-postgres-migrator
+    hostname: pg-migrator
+    build:
+      context: ..
+      dockerfile: pkg/pgmigrator/Dockerfile
+    environment:
+      - GOOSE_MIGRATION_DIR=/migrations
+    env_file:
+      - goose.env
+    command:
+      - "goose"
+      - "up"
+    volumes:
+      - ../migrations:/migrations
+    depends_on:
+      doctree-postgres:
+        condition: service_healthy
+    networks:
+      - doctree-postgres-net
+
+  doctree-loki:
+    container_name: doctree-loki
+    hostname: loki
+    image: grafana/loki:latest
+    ports:
+      - 3100:3100
+    volumes:
+      - loki-data:/loki
+    networks:
+      - doctree-traefik-net
+
+  doctree-grafana:
+   container_name: doctree-grafana
+   hostname: grafana
+   image: grafana/grafana:latest
+   ports:
+     - 23003:3000
+   environment:
+     - GF_SECURITY_ADMIN_PASSWORD=admin
+     - GF_SERVER_ROOT_URL=http://localhost/monitoring
+     - GF_SERVER_SERVE_FROM_SUB_PATH=true
+   volumes:
+     - grafana-data:/var/lib/grafana
+   depends_on:
+     - doctree-loki
+   networks:
+     - doctree-traefik-net
+
+  doctree-promtail:
+    container_name: doctree-promtail
+    hostname: promtail
+    image: grafana/promtail:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../promtail-config.yaml:/etc/promtail/config.yml:ro
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - doctree-loki
+    networks:
+      - doctree-traefik-net
+
+volumes:
+  doctree-postgres-data:
+  doctree-minio-data:
+  loki-data:
+  grafana-data:
+
+networks:
+  doctree-postgres-net:
+    driver: bridge
+    external: true
+  doctree-minio-net:
+    driver: bridge
+    external: true
+  doctree-traefik-net:
+    driver: bridge
+    external: true
+
+
+    

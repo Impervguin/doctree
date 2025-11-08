@@ -1,0 +1,34 @@
+[
+    {
+      "name": "auth",
+      "versions": ["v1", "v2"],
+      "servers": [
+        { "host": "auth", "port": 3000 },
+        { "host": "localhost", "port": 80 }
+      ]
+    },
+    {
+      "name": "tree",
+      "versions": ["v1", "v2"],
+      "servers": [
+        { "host": "tree", "port": 3000 },
+        { "host": "localhost", "port": 80 }
+      ]
+    },
+    {
+      "name": "files",
+      "versions": ["v1", "v2"],
+      "servers": [
+        { "host": "files", "port": 3000 },
+        { "host": "localhost", "port": 80 }
+      ]
+    },
+    {
+      "name": "documents",
+      "versions": ["v1", "v2"],
+      "servers": [
+        { "host": "documents", "port": 3000 },
+        { "host": "localhost", "port": 80 }
+      ]
+    }
+  ]

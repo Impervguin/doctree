@@ -1,0 +1,227 @@
+http:
+  routers:
+    media-router:
+      rule: "PathPrefix(`/media`)"
+      service: minio-media
+      middlewares: ["strip-media", "gzip-compress"]
+
+    app-api-swagger-router:
+      rule: "PathPrefix(`/{path:(api/v[0-9]+(/?))}`)"
+      service: api-gateway
+      middlewares: ["app-name-header", "cache-api", "gzip-compress"]
+    
+    auth-api-router-write:
+      rule: "PathPrefix(`/{path:(api/v[0-9]+/auth(/?)(.*))}`) && Method(`POST`, `PUT`, `PATCH`, `DELETE`)"
+      service: api-auth-write
+      middlewares: ["app-name-header", "cache-api", "gzip-compress"]
+    
+    auth-api-router-read:
+      rule: "PathPrefix(`/{path:(api/v[0-9]+/auth(/?)(.*))}`) && Method(`GET`, `HEAD`, `OPTIONS`)"
+      service: api-auth
+      middlewares: ["app-name-header", "cache-api", "gzip-compress"]
+    
+    tree-api-router-write:
+      rule: "PathPrefix(`/{path:(api/v[0-9]+/tree(/?)(.*))}`) && Method(`POST`, `PUT`, `PATCH`, `DELETE`)"
+      service: api-tree-write
+      middlewares: ["app-name-header", "cache-api", "gzip-compress"]
+    
+    tree-api-router-read:
+      rule: "PathPrefix(`/{path:(api/v[0-9]+/tree(/?)(.*))}`) && Method(`GET`, `HEAD`, `OPTIONS`)"
+      service: api-tree
+      middlewares: ["app-name-header", "cache-api", "gzip-compress"]
+    
+    files-api-router-read:
+      rule: "PathPrefix(`/{path:(api/v[0-9]+/files(/?)(.*))}`) && Method(`GET`, `HEAD`, `OPTIONS`)"
+      service: api-files
+      middlewares: ["app-name-header", "cache-api", "gzip-compress"]
+    
+    files-api-router-write:
+      rule: "PathPrefix(`/{path:(api/v[0-9]+/files(/?)(.*))}`) && Method(`POST`, `PUT`, `PATCH`, `DELETE`)"
+      service: api-files-write
+      middlewares: ["app-name-header", "cache-api", "gzip-compress"]
+    
+    documents-api-router-write:
+      rule: "PathPrefix(`/{path:(api/v[0-9]+/docs(/?)(.*))}`) && Method(`POST`, `PUT`, `PATCH`, `DELETE`)"
+      service: api-documents-write
+      middlewares: ["app-name-header", "cache-api", "gzip-compress"]
+    
+    documents-api-router-read:
+      rule: "PathPrefix(`/{path:(api/v[0-9]+/docs(/?)(.*))}`) && Method(`GET`, `HEAD`, `OPTIONS`)"
+      service: api-documents
+      middlewares: ["app-name-header", "cache-api", "gzip-compress"]
+
+    monitoring-router:
+      rule: "PathPrefix(`/monitoring`)"
+      middlewares:
+        - monitoring-header-scripts
+        - cache-static
+        - gzip-compress
+      service: grafana-service
+
+  services:
+    minio-media:
+      loadBalancer:
+        servers:
+          - url: "http://minio:9000"
+    
+    api-gateway:
+      loadBalancer:
+        servers:
+          - url: "http://gateway:3000"
+      
+    api-auth:
+      weighted:
+        services:
+          - name: api-auth-write
+            weight: 2
+          - name: api-auth-readonly1
+            weight: 1
+          - name: api-auth-readonly2
+            weight: 1
+    
+    api-auth-write:
+      loadBalancer:
+        servers:
+          - url: "http://auth:3000"
+    
+    api-auth-readonly1:
+      loadBalancer:
+        servers:
+          - url: "http://auth-readonly1:3000"
+    
+    api-auth-readonly2:
+      loadBalancer:
+        servers:
+          - url: "http://auth-readonly2:3000"
+    
+    api-tree:
+      weighted:
+        services:
+          - name: api-tree-write
+            weight: 2
+          - name: api-tree-readonly1
+            weight: 1
+          - name: api-tree-readonly2
+            weight: 1
+    
+    api-tree-write:
+      loadBalancer:
+        servers:
+          - url: "http://tree:3000"
+    
+    api-tree-readonly1:
+      loadBalancer:
+        servers:
+          - url: "http://tree-readonly1:3000"
+    
+    api-tree-readonly2:
+      loadBalancer:
+        servers:
+          - url: "http://tree-readonly2:3000"
+    
+    api-files:
+      weighted:
+        services:
+          - name: api-files-write
+            weight: 2
+          - name: api-files-readonly1
+            weight: 1
+          - name: api-files-readonly2
+            weight: 1
+    
+    api-files-write:
+      loadBalancer:
+        servers:
+          - url: "http://files:3000"
+    
+    api-files-readonly1:
+      loadBalancer:
+        servers:
+          - url: "http://files-readonly1:3000"
+    
+    api-files-readonly2:
+      loadBalancer:
+        servers:  
+          - url: "http://files-readonly2:3000"
+    
+    api-documents:
+      weighted:
+        services:
+          - name: api-documents-write
+            weight: 2
+          - name: api-documents-readonly1
+            weight: 1
+          - name: api-documents-readonly2
+            weight: 1
+    
+    api-documents-write:
+      loadBalancer:
+        servers:
+          - url: "http://documents:3000"
+    
+    api-documents-readonly1:
+      loadBalancer:
+        servers:
+          - url: "http://documents-readonly1:3000"
+    
+    api-documents-readonly2:  
+      loadBalancer:
+        servers:
+          - url: "http://documents-readonly2:3000"
+
+    grafana-service:
+      loadBalancer:
+        servers:
+          - url: "http://grafana:3000"
+
+  middlewares:
+    strip-media:
+      stripPrefix:
+        prefixes:
+          - "/media"
+    strip-monitoring:
+      stripPrefix:
+        prefixes:
+          - "/monitoring"
+    strip-grpc-files:
+      stripPrefix:
+        prefixes:
+          - "/grpc/files"
+    monitoring-header-scripts:
+      headers:
+        customRequestHeaders:
+          X-Script-Name: /monitoring
+    monitoring-rewrite:
+      replacePathRegex:
+        regex: "^/monitoring(/.*)?$"
+        replacement: "$1"
+    app-name-header:
+      headers:
+        customResponseHeaders:
+          Server: "doctree-app"
+    
+    gzip-compress:
+      compress:
+        excludedContentTypes:
+          - "application/octet-stream"
+        minResponseBodyBytes: 1024
+        
+    cache-api:
+      headers:
+        customResponseHeaders:
+          Cache-Control: "public, max-age=300"
+        accessControlAllowMethods:
+          - "GET"
+          - "HEAD"
+          - "OPTIONS"
+
+    cache-static:
+      headers:
+        customResponseHeaders:
+          Cache-Control: "public, max-age=3600" 
+        accessControlAllowMethods:
+          - "GET"
+          - "HEAD"
+          - "OPTIONS"
+
+      

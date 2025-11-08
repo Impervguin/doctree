@@ -1,0 +1,41 @@
+{
+  "name": "@doctree/shared",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./base": "./dist/base/index.js",
+    "./base/base.model": "./dist/base/base.model.js",
+    "./base/base.entity": "./dist/base/base.entity.js",
+    "./base/before": "./dist/base/before.js",
+    "./errors": "./dist/errors/index.js",
+    "./errors/errors": "./dist/errors/errors.js",
+    "./readonly": "./dist/readonly/index.js",
+    "./readonly/readonly.guard": "./dist/readonly/readonly.guard.js",
+    "./readonly/readonly.module": "./dist/readonly/readonly.module.js",
+    "./utils": "./dist/utils/index.js",
+    "./utils/validate.throw": "./dist/utils/validate.throw.js",
+    "./utils/date": "./dist/utils/date.js",
+    "./utils/logging.interceptor": "./dist/utils/logging.interceptor.js",
+    "./utils/parse.cookies": "./dist/utils/parse.cookies.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.1.8",
+    "@nestjs/config": "^4.0.2",
+    "class-validator": "^0.14.2",
+    "crypto": "^1.0.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "typeorm": "^0.3.27"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.0",
+    "@nestjs/schematics": "^11.0.0",
+    "typescript": "^5.7.3"
+  }
+}

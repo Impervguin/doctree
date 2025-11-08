@@ -5,13 +5,36 @@ api:
 log:
   level: DEBUG
 
+
+# # Access logs configuration
+# accessLog:
+  
+#   # Configure what gets logged
+#   fields:
+#     # Default fields configuration
+#     defaultMode: keep
+#     headers:
+#       defaultMode: keep
+    
+#     # Custom fields to include router information
+#     names:
+#       RouterName: keep
+#       ServiceName: keep
+    
+#   # Optional: Format configuration
+#   format: common  # or "json" for JSON format
+
 entryPoints:
   web:
     address: ":80"
   websecure:
     address: ":443"
+  grpc:
+    address: ":50050"
+  grpc-replica:
+    address: ":50051"
 
 providers:
   file:
-    filename: /etc/traefik/dynamic.yml
+    directory: /etc/traefik/configs
     watch: true

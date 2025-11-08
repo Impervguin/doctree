@@ -1,0 +1,120 @@
+http:
+  routers:
+    files-grpc-router-write-mirror:
+      rule: "PathPrefix(`/{path:(files[.]FileWrite(.*))}`) && Headers(`Content-Type`, `application/grpc`)"
+      entryPoints: ["grpc-replica"]
+      service: files-grpc-write-mirror
+      middlewares: ["gzip-compress"]
+    
+    files-grpc-router-read-mirror:
+      rule: "PathPrefix(`/{path:(files[.]FileRead(.*))}`) && Headers(`Content-Type`, `application/grpc`)"
+      entryPoints: ["grpc-replica"]
+      service: files-grpc-mirror
+      middlewares: ["gzip-compress"]
+    
+    auth-grpc-router-write-mirror:
+      rule: "PathPrefix(`/{path:(auth[.]AuthWrite(.*))}`) && Headers(`Content-Type`, `application/grpc`)"
+      entryPoints: ["grpc-replica"]
+      service: auth-grpc-write-mirror
+      middlewares: ["gzip-compress"]
+    
+    auth-grpc-router-read-mirror:
+      rule: "PathPrefix(`/{path:(auth[.]AuthRead(.*))}`) && Headers(`Content-Type`, `application/grpc`)"
+      entryPoints: ["grpc-replica"]
+      service: auth-grpc-mirror
+      middlewares: ["gzip-compress"]
+    
+    tree-grpc-router-write-mirror:
+      rule: "PathPrefix(`/{path:(tree[.]TreeWrite(.*))}`)) && Headers(`Content-Type`, `application/grpc`)"
+      entryPoints: ["grpc-replica"]
+      service: tree-grpc-write-mirror
+      middlewares: ["gzip-compress"]
+    
+    tree-grpc-router-read-mirror:
+      rule: "PathPrefix(`/{path:(tree[.]TreeRead(.*))}`) && Headers(`Content-Type`, `application/grpc`)"
+      entryPoints: ["grpc-replica"]
+      service: tree-grpc-mirror
+      middlewares: ["gzip-compress"]
+  
+  services:
+    files-grpc-mirror:
+      weighted:
+        services:
+          - name: files-grpc-write-mirror
+            weight: 2
+          - name: files-grpc-readonly1-mirror
+            weight: 1
+          - name: files-grpc-readonly2-mirror
+            weight: 1
+          
+    files-grpc-write-mirror:
+      loadBalancer:
+        servers:
+          - url: "h2c://files-replica:50050"
+    
+    files-grpc-readonly1-mirror:
+      loadBalancer:
+        servers:
+          - url: "h2c://files-replica-readonly1:50050"
+    
+    files-grpc-readonly2-mirror:
+      loadBalancer:
+        servers:
+          - url: "h2c://files-replica-readonly2:50050"
+    
+    auth-grpc-mirror:
+      weighted:
+        services:
+          - name: auth-grpc-write-mirror
+            weight: 2
+          - name: auth-grpc-readonly1-mirror
+            weight: 1
+          - name: auth-grpc-readonly2-mirror
+            weight: 1
+
+    auth-grpc-write-mirror:
+      loadBalancer:
+        servers:
+          - url: "h2c://auth-replica:50050"
+    
+    auth-grpc-readonly1-mirror:
+      loadBalancer:
+        servers:
+          - url: "h2c://auth-replica-readonly1:50050"
+    
+    auth-grpc-readonly2-mirror:
+      loadBalancer:
+        servers:
+          - url: "h2c://auth-replica-readonly2:50050"
+    
+    tree-grpc-mirror:
+      weighted:
+        services:
+          - name: tree-grpc-write-mirror
+            weight: 2
+          - name: tree-grpc-readonly1-mirror
+            weight: 1
+          - name: tree-grpc-readonly2-mirror
+            weight: 1
+
+    tree-grpc-write-mirror:
+      loadBalancer:
+        servers:
+          - url: "h2c://tree-replica:50050"
+    
+    tree-grpc-readonly1-mirror:
+      loadBalancer:
+        servers:
+          - url: "h2c://tree-replica-readonly1:50050"
+    
+    tree-grpc-readonly2-mirror:
+      loadBalancer:
+        servers:
+          - url: "h2c://tree-replica-readonly2:50050"
+    
+  middlewares:
+    gzip-compress:
+      compress:
+        excludedContentTypes:
+          - "application/octet-stream"
+        minResponseBodyBytes: 1024  

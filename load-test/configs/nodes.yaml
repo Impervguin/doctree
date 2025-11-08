@@ -20,4 +20,4 @@ pools:
 
     startup:
       type: once
-      times: 1000
+      times: 500
